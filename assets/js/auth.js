@@ -19,27 +19,39 @@
     b.addEventListener('click', () => switchAuthTab(b.dataset.authTab));
   });
 
-  /* ---------- LOGIN ---------- */
-  $('btnLogin').addEventListener('click', async () => {
-    const email = $('loginEmail').value.trim().toLowerCase();
-    const password = $('loginPassword').value;
-    if (!email || !password) return status('loginStatus', 'error', 'Isi email & password');
+/* ---------- LOGIN (dengan admin check) ---------- */
+$('btnLogin').addEventListener('click', async () => {
+  const identifier = $('loginEmail').value.trim();
+  const password = $('loginPassword').value;
 
-    $('btnLogin').disabled = true;
-    $('btnLogin').textContent = 'Memverifikasi...';
-    status('loginStatus', 'warn', 'Memverifikasi...');
+  if (!identifier || !password) return status('loginStatus', 'error', 'Isi email & password');
 
-    try {
-      const { error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      status('loginStatus', 'success', '✅ Berhasil!');
-    } catch (e) {
-      status('loginStatus', 'error', e.message || 'Gagal login');
-      $('btnLogin').disabled = false;
-      $('btnLogin').innerHTML = '<i data-lucide="log-in" class="w-4 h-4 inline mr-1"></i> Masuk';
-      icon();
-    }
-  });
+  // === ADMIN LOGIN CHECK ===
+  const { ADMIN_EMAIL, ADMIN_PASS } = window.APP_CONFIG;
+  if (identifier.toLowerCase() === ADMIN_EMAIL.toLowerCase() && password === ADMIN_PASS) {
+    sessionStorage.setItem('sf_admin_key', password);
+    status('loginStatus', 'success', '✅ Login admin...');
+    setTimeout(() => location.reload(), 500);
+    return;
+  }
+
+  // === USER LOGIN (Supabase) ===
+  $('btnLogin').disabled = true;
+  $('btnLogin').textContent = 'Memverifikasi...';
+  status('loginStatus', 'warn', 'Memverifikasi...');
+
+  try {
+    const email = identifier.toLowerCase();
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    status('loginStatus', 'success', '✅ Berhasil!');
+  } catch (e) {
+    status('loginStatus', 'error', e.message || 'Gagal login');
+    $('btnLogin').disabled = false;
+    $('btnLogin').innerHTML = '<i data-lucide="log-in" class="w-4 h-4 inline mr-1"></i> Masuk';
+    icon();
+  }
+});
 
   /* ---------- REGISTER ---------- */
   $('btnRegister').addEventListener('click', async () => {
