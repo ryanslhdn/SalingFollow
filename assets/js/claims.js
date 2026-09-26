@@ -1,5 +1,5 @@
 /* ============================================================
-   CLAIMS — Verifikasi klaim (sisi target/pemilik akun)
+   CLAIMS — Verifikasi klaim
    ============================================================ */
 
 (function() {
@@ -35,7 +35,7 @@
         <div class="modal-header">
           <div>
             <h3 class="modal-title">Verifikasi Klaim</h3>
-            <p class="text-[11px] text-slate-500 font-semibold">Cek IG/TikTok-mu, approve kalau benar</p>
+            <p class="text-[11px] text-slate-500 font-semibold">Cek akunmu, approve kalau benar</p>
           </div>
           <button class="modal-close" data-close-verify>
             <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
@@ -62,15 +62,24 @@
                     <div class="text-[10px] font-black uppercase text-amber-600">⏱ ${timeLeft}</div>
                   </div>
                 </div>
-                <div class="text-xs text-slate-600 mb-3">
-                  Klaim sudah follow <b>@${esc(c.target_username)}</b> (${p.name})
+
+                <div class="rounded-xl bg-slate-50 p-3 mb-3 flex items-center gap-2">
+                  <span class="text-[10px] font-black uppercase tracking-wider text-slate-500 flex-shrink-0">Akun follower:</span>
+                  <a href="${esc(c.from_url || '#')}" target="_blank" rel="noopener" class="font-black text-xs truncate ${p.color ? '' : ''}" style="color:${p.color}">
+                    @${esc(c.from_username || '?')}
+                  </a>
                 </div>
-                <div class="flex gap-2">
-                  <button data-verify="${c.claim_id}" data-approve="true" class="flex-1 py-2.5 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white font-black text-xs shadow-md">
-                    <i data-lucide="check" class="w-3.5 h-3.5 inline mr-1"></i> Benar
+
+                <div class="text-xs text-slate-600 mb-3">
+                  Klaim sudah follow akun <b>@${esc(c.target_username)}</b> (${p.name})
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <button data-verify="${c.claim_id}" data-approve="true" class="py-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white font-black text-xs shadow-md">
+                    ✓ Benar
                   </button>
-                  <button data-verify="${c.claim_id}" data-approve="false" class="flex-1 py-2.5 rounded-xl bg-red-50 text-red-600 font-black text-xs border border-red-200">
-                    <i data-lucide="x" class="w-3.5 h-3.5 inline mr-1"></i> Tidak
+                  <button data-verify="${c.claim_id}" data-approve="false" class="py-2.5 rounded-xl bg-red-50 text-red-600 font-black text-xs border border-red-200">
+                    ✗ Tidak
                   </button>
                 </div>
               </div>`;
@@ -97,19 +106,15 @@
 
   async function verifyClaim(claimId, approve) {
     let reason = null;
-    if (!approve) {
-      reason = prompt('Alasan reject (opsional):') || 'Tidak dikonfirmasi';
-    }
+    if (!approve) reason = prompt('Alasan reject (opsional):') || 'Tidak dikonfirmasi';
 
     try {
       const { error } = await sb.rpc('verify_claim', {
-        p_claim_id: claimId,
-        p_approve: approve,
-        p_reason: reason,
+        p_claim_id: claimId, p_approve: approve, p_reason: reason,
       });
       if (error) throw error;
 
-      toast(approve ? '✅ Approved! Follower dapat kredit' : '❌ Rejected', approve ? 'success' : 'info');
+      toast(approve ? '✅ Approved!' : '❌ Rejected', approve ? 'success' : 'info');
       document.getElementById('verifyModal')?.remove();
       document.body.style.overflow = '';
       await Promise.all([loadPendingClaims(), App.loadProfile(), App.loadAccounts()]);
@@ -118,17 +123,12 @@
     }
   }
 
-  /* ---------- REALTIME ---------- */
   function setupRealtime() {
     if (state.realtimeChannel) sb.removeChannel(state.realtimeChannel);
-
     state.realtimeChannel = sb.channel('claims-' + state.user.id)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'follow_claims', filter: `target_user_id=eq.${state.user.id}` },
-        () => {
-          loadPendingClaims();
-          toast('Ada klaim follow baru! 🔔', 'info', 4000);
-        })
+        () => { loadPendingClaims(); toast('Ada klaim follow baru! 🔔', 'info', 4000); })
       .subscribe();
   }
 
