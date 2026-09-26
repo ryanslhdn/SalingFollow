@@ -4,64 +4,67 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#10b981">
-<meta name="description" content="SalingFollow — Naik followers bareng-bareng, adil & gratis.">
 <title>SalingFollow — Naik Followers Bareng</title>
 
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-<!-- Tailwind CDN (utility classes) -->
+<!-- Tailwind CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="assets/js/tailwind-config.js"></script>
+<!-- ⚠️ Config Tailwind INLINE — biar tidak usah file terpisah -->
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+      colors: {
+        brand: {
+          50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',
+          400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',
+          800:'#065f46',900:'#064e3b'
+        }
+      }
+    }
+  }
+};
+</script>
 
-<!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 
-<!-- Custom CSS -->
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
 <!-- ============================================================
-     AUTH VIEW (Login / Register)
+     AUTH VIEW
      ============================================================ -->
 <div id="authView" class="min-h-screen flex items-center justify-center p-4">
   <div class="w-full max-w-md">
-    <!-- Logo -->
     <div class="text-center mb-8">
       <div class="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 grid place-items-center shadow-xl shadow-brand-500/40 mb-4">
         <i data-lucide="users-round" class="w-8 h-8 text-white"></i>
       </div>
-      <h1 class="text-3xl font-black tracking-tight bg-gradient-to-br from-brand-600 to-brand-800 bg-clip-text text-transparent">
-        SalingFollow
-      </h1>
+      <h1 class="text-3xl font-black tracking-tight bg-gradient-to-br from-brand-600 to-brand-800 bg-clip-text text-transparent">SalingFollow</h1>
       <p class="text-sm text-slate-500 mt-1.5 font-medium">Naik followers bareng-bareng, adil & gratis</p>
     </div>
 
-    <!-- Card -->
     <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6">
-      <!-- Tabs -->
       <div class="flex gap-1 p-1 bg-slate-100 rounded-2xl mb-6">
-        <button data-auth-tab="login" class="auth-tab-btn flex-1 py-2.5 rounded-xl text-sm font-bold transition-all">
-          Masuk
-        </button>
-        <button data-auth-tab="register" class="auth-tab-btn flex-1 py-2.5 rounded-xl text-sm font-bold transition-all">
-          Daftar
-        </button>
+        <button data-auth-tab="login" class="auth-tab-btn flex-1 py-2.5 rounded-xl text-sm font-bold transition-all">Masuk</button>
+        <button data-auth-tab="register" class="auth-tab-btn flex-1 py-2.5 rounded-xl text-sm font-bold transition-all">Daftar</button>
       </div>
 
-      <!-- Login Panel -->
       <div id="panelLogin" class="space-y-4">
         <div>
-          <label class="form-label">Email</label>
-          <input id="loginEmail" type="email" autocomplete="email" placeholder="nama@email.com" class="form-input">
+          <label class="form-label">Email / Username</label>
+          <input id="loginEmail" type="text" placeholder="nama@email.com" class="form-input">
+          <p class="text-[10px] text-slate-400 mt-1">Admin? Login pakai email <code class="bg-slate-100 px-1 rounded">admin</code></p>
         </div>
         <div>
           <label class="form-label">Password</label>
-          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••" class="form-input">
+          <input id="loginPassword" type="password" placeholder="••••••" class="form-input">
         </div>
         <div id="loginStatus" class="status-msg hidden"></div>
         <button id="btnLogin" class="btn-primary">
@@ -69,7 +72,6 @@
         </button>
       </div>
 
-      <!-- Register Panel -->
       <div id="panelRegister" class="space-y-4 hidden">
         <div>
           <label class="form-label">Nama Lengkap</label>
@@ -77,8 +79,8 @@
         </div>
         <div>
           <label class="form-label">Username</label>
-          <input id="regUsername" type="text" placeholder="budi123" autocomplete="off" class="form-input font-mono">
-          <p class="text-[11px] text-slate-400 mt-1">Min 3 karakter, huruf/angka/underscore</p>
+          <input id="regUsername" type="text" placeholder="budi123" class="form-input font-mono">
+          <p class="text-[11px] text-slate-400 mt-1">Min 3 karakter</p>
         </div>
         <div>
           <label class="form-label">Email</label>
@@ -86,7 +88,7 @@
         </div>
         <div>
           <label class="form-label">Password</label>
-          <input id="regPassword" type="password" placeholder="Min 6 karakter" autocomplete="new-password" class="form-input">
+          <input id="regPassword" type="password" placeholder="Min 6 karakter" class="form-input">
         </div>
         <div id="registerStatus" class="status-msg hidden"></div>
         <button id="btnRegister" class="btn-primary">
@@ -94,26 +96,18 @@
         </button>
         <div class="flex items-center gap-2 p-3 rounded-2xl bg-amber-50 border border-amber-200">
           <i data-lucide="gift" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
-          <p class="text-xs text-amber-800 font-bold">
-            Dapat <span class="text-amber-900">3 kredit gratis</span> untuk mulai!
-          </p>
+          <p class="text-xs text-amber-800 font-bold">Dapat <span class="text-amber-900" id="welcomeCreditsText">3 kredit gratis</span>!</p>
         </div>
       </div>
     </div>
-
-    <p class="text-center text-[11px] text-slate-400 mt-6 leading-relaxed">
-      Follow-for-follow bisa melanggar ToS Instagram/TikTok.<br>
-      Pakai dengan risiko sendiri — jangan unfollow setelah dapat kredit.
-    </p>
   </div>
 </div>
 
 <!-- ============================================================
-     APP VIEW (setelah login)
+     APP VIEW (USER)
      ============================================================ -->
 <div id="appView" class="hidden min-h-screen pb-24">
 
-  <!-- Header -->
   <header class="app-header">
     <div class="max-w-2xl mx-auto px-4 h-16 flex items-center gap-3">
       <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 grid place-items-center shadow-lg shadow-brand-500/30 flex-shrink-0">
@@ -131,7 +125,6 @@
 
   <main class="max-w-2xl mx-auto px-4 pt-5">
 
-    <!-- Pending Banner -->
     <div id="pendingBanner" class="hidden mb-4">
       <button id="btnOpenVerify" class="w-full rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white p-4 shadow-xl shadow-amber-500/30 flex items-center gap-3 active:scale-[.98] transition-transform">
         <div class="w-10 h-10 rounded-xl bg-white/25 backdrop-blur grid place-items-center flex-shrink-0">
@@ -139,23 +132,18 @@
         </div>
         <div class="flex-1 text-left min-w-0">
           <div class="font-black text-sm">Ada yang klaim follow kamu!</div>
-          <div class="text-[11px] text-white/90 font-semibold">
-            Klik untuk verifikasi (<span id="pendingCount">0</span>)
-          </div>
+          <div class="text-[11px] text-white/90 font-semibold">Klik untuk verifikasi (<span id="pendingCount">0</span>)</div>
         </div>
         <i data-lucide="chevron-right" class="w-5 h-5 flex-shrink-0"></i>
       </button>
     </div>
 
-    <!-- Credits Card -->
     <div class="credits-card mb-5">
       <div class="relative flex items-center justify-between gap-4">
         <div>
           <div class="text-[10px] font-black uppercase tracking-widest text-white/80 mb-1">Kredit Kamu</div>
           <div id="creditsValue" class="text-4xl font-black leading-none">—</div>
-          <div class="text-xs text-white/80 mt-2 font-semibold">
-            1 follow = +1 kredit • Boost 24j = −3 kredit
-          </div>
+          <div class="text-xs text-white/80 mt-2 font-semibold">1 follow = +1 kredit • Boost 24j = −3 kredit</div>
         </div>
         <div class="w-16 h-16 rounded-3xl bg-white/20 backdrop-blur grid place-items-center pulse-ring flex-shrink-0">
           <i data-lucide="coins" class="w-8 h-8"></i>
@@ -167,19 +155,24 @@
     <section id="tabFeed" class="tab-section space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="font-black text-lg">Cari Follow 🔍</h2>
-        <button id="btnRefreshFeed" class="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1">
+        <button id="btnRefreshFeed" class="text-xs font-bold text-brand-600 flex items-center gap-1">
           <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
         </button>
       </div>
-      <p class="text-xs text-slate-500 -mt-2">
-        Klik follow, balik ke sini, konfirmasi. Nanti pemilik verifikasi → dapat +1 kredit.
-      </p>
+      <div id="feedNoAccountWarning" class="hidden rounded-2xl bg-amber-50 border border-amber-200 p-4 flex gap-3 items-start">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
+        <div class="flex-1">
+          <div class="font-black text-sm text-amber-900 mb-1">Tambah akun sosmed dulu!</div>
+          <div class="text-xs text-amber-800 leading-relaxed mb-2">Kamu perlu minimal 1 akun IG/TikTok/YouTube untuk bisa follow orang lain. Akun ini akan dipakai untuk follow-for-follow.</div>
+          <button id="btnGoToAccounts" class="px-3 py-1.5 rounded-lg bg-amber-500 text-white font-black text-xs">Tambah Akun</button>
+        </div>
+      </div>
       <div id="feedList" class="space-y-3"></div>
       <div id="feedEmpty" class="hidden">
         <div class="empty-state">
           <div class="empty-icon"><i data-lucide="inbox" class="w-10 h-10 text-slate-400"></i></div>
           <h3 class="empty-title">Belum ada akun untuk di-follow</h3>
-          <p class="empty-desc">Refresh nanti, atau tambah akunmu dulu di tab "Akun" biar member lain follow balik.</p>
+          <p class="empty-desc">Coba refresh nanti, atau tambah akunmu biar member lain follow balik.</p>
         </div>
       </div>
     </section>
@@ -192,14 +185,35 @@
           <i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah
         </button>
       </div>
-      <p class="text-xs text-slate-500 -mt-2">Boost akunmu biar muncul di atas feed member lain.</p>
+      <p class="text-xs text-slate-500 -mt-2">Akun ini dipakai untuk di-follow member lain DAN untuk follow orang lain.</p>
       <div id="accountsList" class="space-y-3"></div>
       <div id="accountsEmpty" class="hidden">
         <div class="empty-state">
           <div class="empty-icon"><i data-lucide="user-plus" class="w-10 h-10 text-slate-400"></i></div>
           <h3 class="empty-title">Belum ada akun</h3>
-          <p class="empty-desc">Tambah IG/TikTok/YouTube-mu biar bisa di-follow member lain.</p>
+          <p class="empty-desc">Tambah IG/TikTok/YouTube-mu biar bisa ikut sistem follow-for-follow.</p>
         </div>
+      </div>
+    </section>
+
+    <!-- TAB: STORE (Beli Kredit) -->
+    <section id="tabStore" class="tab-section space-y-4 hidden">
+      <h2 class="font-black text-lg">Beli Kredit 🛒</h2>
+      <p class="text-xs text-slate-500 -mt-2">Beli kredit untuk boost akunmu lebih cepat.</p>
+      <div id="storePackages" class="grid grid-cols-2 gap-3"></div>
+
+      <div class="card-base mt-4">
+        <h3 class="section-title mb-3">Info Pembayaran</h3>
+        <div id="storePaymentInfo" class="text-xs text-slate-700 whitespace-pre-line font-mono bg-slate-50 p-3 rounded-xl leading-relaxed">—</div>
+        <p class="text-[11px] text-amber-700 mt-3 flex items-start gap-1.5">
+          <i data-lucide="info" class="w-3 h-3 flex-shrink-0 mt-0.5"></i>
+          <span>Setelah transfer, klik paket yang kamu beli → isi catatan → admin akan verifikasi maksimal 1×24 jam.</span>
+        </p>
+      </div>
+
+      <div class="mt-4">
+        <h3 class="section-title mb-3">Riwayat Pembelian</h3>
+        <div id="myPurchases" class="space-y-2"></div>
       </div>
     </section>
 
@@ -247,25 +261,25 @@
       <div class="card-base">
         <h3 class="section-title mb-3">Cara Kerja</h3>
         <div class="text-xs text-slate-600 space-y-2.5 leading-relaxed">
-          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">1.</span><span>Follow akun di Feed, balik ke app, klik konfirmasi.</span></div>
-          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">2.</span><span>Pemilik akun dapat notif → approve → kamu <b class="text-brand-700">+1 kredit</b>.</span></div>
-          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">3.</span><span>Kalau nggak dibalas 48 jam, auto-approve.</span></div>
-          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">4.</span><span>Pakai kredit buat <b>boost</b> akunmu — <b>3 kredit</b>/24 jam.</span></div>
-          <div class="flex gap-2"><span class="text-amber-600 font-black flex-shrink-0">⚠</span><span class="text-amber-800">Jangan bohong. Target reject 3× → kamu bisa di-ban.</span></div>
+          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">1.</span><span>Tambah akun IG/TikTok-mu di tab Akun.</span></div>
+          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">2.</span><span>Follow akun di Feed → pilih pakai akun kamu yang mana → konfirmasi.</span></div>
+          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">3.</span><span>Pemilik akun cek IG-nya → approve → kamu +1 kredit.</span></div>
+          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">4.</span><span>Pakai kredit boost akunmu (3 kredit/24 jam) atau beli kredit di tab Toko.</span></div>
         </div>
       </div>
     </section>
-
   </main>
 
-  <!-- Bottom Nav -->
   <nav class="bottom-nav">
-    <div class="max-w-2xl mx-auto grid grid-cols-4 h-16">
+    <div class="max-w-2xl mx-auto grid grid-cols-5 h-16">
       <button data-tab="feed" class="tab-btn">
         <i data-lucide="compass" class="w-5 h-5"></i><span>Feed</span>
       </button>
       <button data-tab="accounts" class="tab-btn">
         <i data-lucide="user-circle" class="w-5 h-5"></i><span>Akun</span>
+      </button>
+      <button data-tab="store" class="tab-btn">
+        <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Toko</span>
       </button>
       <button data-tab="history" class="tab-btn">
         <i data-lucide="history" class="w-5 h-5"></i><span>Riwayat</span>
@@ -275,6 +289,135 @@
       </button>
     </div>
   </nav>
+</div>
+
+<!-- ============================================================
+     ADMIN VIEW
+     ============================================================ -->
+<div id="adminView" class="hidden min-h-screen bg-slate-900 text-slate-100">
+  <header class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 grid place-items-center shadow-lg shadow-red-500/30 flex-shrink-0">
+        <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="font-black text-sm">Admin Panel</div>
+        <div class="text-[10px] font-bold text-red-400 uppercase tracking-widest">SalingFollow</div>
+      </div>
+      <button id="btnAdminLogout" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-red-900/50 hover:text-red-300 text-slate-400 text-xs font-bold flex items-center gap-1.5 transition-colors">
+        <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Keluar
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-5">
+
+    <!-- Stats -->
+    <div id="adminStats" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      <div class="admin-stat-card">
+        <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Total User</div>
+        <div id="adminTotalUsers" class="text-2xl font-black text-white">—</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Kredit Beredar</div>
+        <div id="adminTotalCredits" class="text-2xl font-black text-emerald-400">—</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Klaim</div>
+        <div id="adminTotalClaims" class="text-2xl font-black text-blue-400">—</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Pending Beli</div>
+        <div id="adminPendingPurchases" class="text-2xl font-black text-amber-400">—</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Banned</div>
+        <div id="adminBanned" class="text-2xl font-black text-red-400">—</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 p-1 bg-slate-800 rounded-2xl mb-5 overflow-x-auto">
+      <button data-admin-tab="users" class="admin-tab-btn flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all whitespace-nowrap">Users</button>
+      <button data-admin-tab="purchases" class="admin-tab-btn flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all whitespace-nowrap">Pembelian</button>
+      <button data-admin-tab="settings" class="admin-tab-btn flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all whitespace-nowrap">Pengaturan</button>
+    </div>
+
+    <!-- TAB: USERS -->
+    <section id="adminTabUsers" class="admin-tab-content">
+      <div class="bg-slate-800 rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-black text-sm">Semua User</h2>
+          <button id="btnAdminRefreshUsers" class="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+          </button>
+        </div>
+        <div id="adminUsersList" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- TAB: PURCHASES -->
+    <section id="adminTabPurchases" class="admin-tab-content hidden">
+      <div class="bg-slate-800 rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-black text-sm">Pembelian Kredit</h2>
+          <button id="btnAdminRefreshPurchases" class="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+          </button>
+        </div>
+        <div id="adminPurchasesList" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- TAB: SETTINGS -->
+    <section id="adminTabSettings" class="admin-tab-content hidden">
+      <div class="bg-slate-800 rounded-2xl p-5 space-y-4">
+        <h2 class="font-black text-sm">Pengaturan Aplikasi</h2>
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Info Pembayaran (ditampilkan ke user)</label>
+          <textarea id="adminSetPaymentInfo" rows="4" class="w-full px-4 py-3 rounded-xl bg-slate-900 border-2 border-slate-700 focus:border-emerald-500 outline-none text-sm text-slate-100 font-mono"></textarea>
+        </div>
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Welcome Credits (untuk user baru)</label>
+          <input id="adminSetWelcomeCredits" type="number" min="0" class="w-full px-4 py-3 rounded-xl bg-slate-900 border-2 border-slate-700 focus:border-emerald-500 outline-none text-sm text-slate-100">
+        </div>
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Admin Password</label>
+          <input id="adminSetAdminKey" type="text" class="w-full px-4 py-3 rounded-xl bg-slate-900 border-2 border-slate-700 focus:border-emerald-500 outline-none text-sm text-slate-100 font-mono">
+          <p class="text-[10px] text-amber-400 mt-1.5">⚠️ Ganti juga di <code>assets/js/config.js</code> (ADMIN_PASS) agar sinkron.</p>
+        </div>
+        <button id="btnAdminSaveSettings" class="w-full py-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white font-black text-sm">
+          <i data-lucide="save" class="w-4 h-4 inline mr-1"></i> Simpan Pengaturan
+        </button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============================================================
+     MODAL: CHOOSE FOLLOWER ACCOUNT (user pilih akun untuk follow)
+     ============================================================ -->
+<div id="modalChooseFollower" class="modal-wrapper hidden">
+  <div class="modal-backdrop" data-close-modal="modalChooseFollower"></div>
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Pilih Akunmu</h3>
+      <button class="modal-close" data-close-modal="modalChooseFollower">
+        <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+        Kamu akan follow <b id="chooseTargetName">@—</b> di <b id="chooseTargetPlatform">—</b>.
+        Pilih akunmu yang mana yang dipakai untuk follow.
+      </p>
+      <div id="followerAccountChoices" class="space-y-2"></div>
+      <div id="chooseNoAccount" class="hidden text-xs text-red-600 font-bold p-3 rounded-xl bg-red-50">
+        Kamu belum punya akun <span id="chooseNoAccountPlatform">—</span>. Tambah dulu di tab Akun.
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
@@ -296,7 +439,7 @@
       </div>
       <div>
         <label class="form-label">Username (tanpa @)</label>
-        <input id="accUsername" type="text" placeholder="username" autocomplete="off" class="form-input font-mono">
+        <input id="accUsername" type="text" placeholder="username" class="form-input font-mono">
       </div>
       <div>
         <label class="form-label">Link Profil Lengkap</label>
@@ -305,9 +448,7 @@
       <div id="addAccStatus" class="status-msg hidden"></div>
     </div>
     <div class="modal-footer">
-      <button id="btnSaveAccount" class="btn-primary">
-        Simpan Akun
-      </button>
+      <button id="btnSaveAccount" class="btn-primary">Simpan Akun</button>
     </div>
   </div>
 </div>
@@ -353,11 +494,57 @@
   </div>
 </div>
 
-<!-- Toasts -->
+<!-- ============================================================
+     MODAL: CONFIRM PURCHASE (user mau beli paket)
+     ============================================================ -->
+<div id="modalPurchase" class="modal-wrapper hidden">
+  <div class="modal-backdrop" data-close-modal="modalPurchase"></div>
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Konfirmasi Pembelian</h3>
+      <button class="modal-close" data-close-modal="modalPurchase">
+        <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+      </button>
+    </div>
+    <div class="modal-body space-y-4">
+      <div class="rounded-2xl bg-slate-50 p-4">
+        <div id="purchaseSummary" class="font-black text-sm">—</div>
+      </div>
+      <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3 flex gap-2">
+        <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
+        <div class="text-[11px] text-amber-800 leading-relaxed">
+          Transfer dulu ke rekening di tab Toko. Setelah itu submit form ini. Admin akan verifikasi.
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Metode Transfer</label>
+        <select id="purchaseMethod" class="form-input">
+          <option value="BCA">BCA</option>
+          <option value="Mandiri">Mandiri</option>
+          <option value="BRI">BRI</option>
+          <option value="BNI">BNI</option>
+          <option value="DANA">DANA</option>
+          <option value="OVO">OVO</option>
+          <option value="GoPay">GoPay</option>
+          <option value="ShopeePay">ShopeePay</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Catatan (opsional)</label>
+        <input id="purchaseNote" type="text" placeholder="contoh: transfer dari 0812xxx" class="form-input">
+      </div>
+      <div id="purchaseStatus" class="status-msg hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnConfirmPurchase" class="btn-primary">Kirim Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 
 <!-- ============================================================
-     SCRIPTS — URUTAN PENTING! JANGAN DIACAK
+     SCRIPTS
      ============================================================ -->
 <script src="assets/js/config.js"></script>
 <script src="assets/js/client.js"></script>
@@ -369,7 +556,9 @@
 <script src="assets/js/claims.js"></script>
 <script src="assets/js/boost.js"></script>
 <script src="assets/js/history.js"></script>
+<script src="assets/js/store.js"></script>
 <script src="assets/js/tabs.js"></script>
+<script src="assets/js/admin.js"></script>
 <script src="assets/js/app.js"></script>
 
 </body>
