@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#10b981">
+<meta name="description" content="SalingFollow — Naik followers bareng-bareng, adil & gratis.">
+<title>SalingFollow — Naik Followers Bareng</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- Tailwind CDN (utility classes) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="assets/js/tailwind-config.js"></script>
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     AUTH VIEW (Login / Register)
+     ============================================================ -->
+<div id="authView" class="min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 grid place-items-center shadow-xl shadow-brand-500/40 mb-4">
+        <i data-lucide="users-round" class="w-8 h-8 text-white"></i>
+      </div>
+      <h1 class="text-3xl font-black tracking-tight bg-gradient-to-br from-brand-600 to-brand-800 bg-clip-text text-transparent">
+        SalingFollow
+      </h1>
+      <p class="text-sm text-slate-500 mt-1.5 font-medium">Naik followers bareng-bareng, adil & gratis</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6">
+      <!-- Tabs -->
+      <div class="flex gap-1 p-1 bg-slate-100 rounded-2xl mb-6">
+        <button data-auth-tab="login" class="auth-tab-btn flex-1 py-2.5 rounded-xl text-sm font-bold transition-all">
+          Masuk
+        </button>
+        <button data-auth-tab="register" class="auth-tab-btn flex-1 py-2.5 rounded-xl text-sm font-bold transition-all">
+          Daftar
+        </button>
+      </div>
+
+      <!-- Login Panel -->
+      <div id="panelLogin" class="space-y-4">
+        <div>
+          <label class="form-label">Email</label>
+          <input id="loginEmail" type="email" autocomplete="email" placeholder="nama@email.com" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Password</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••" class="form-input">
+        </div>
+        <div id="loginStatus" class="status-msg hidden"></div>
+        <button id="btnLogin" class="btn-primary">
+          <i data-lucide="log-in" class="w-4 h-4 inline mr-1"></i> Masuk
+        </button>
+      </div>
+
+      <!-- Register Panel -->
+      <div id="panelRegister" class="space-y-4 hidden">
+        <div>
+          <label class="form-label">Nama Lengkap</label>
+          <input id="regName" type="text" placeholder="Budi Santoso" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Username</label>
+          <input id="regUsername" type="text" placeholder="budi123" autocomplete="off" class="form-input font-mono">
+          <p class="text-[11px] text-slate-400 mt-1">Min 3 karakter, huruf/angka/underscore</p>
+        </div>
+        <div>
+          <label class="form-label">Email</label>
+          <input id="regEmail" type="email" placeholder="nama@email.com" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Password</label>
+          <input id="regPassword" type="password" placeholder="Min 6 karakter" autocomplete="new-password" class="form-input">
+        </div>
+        <div id="registerStatus" class="status-msg hidden"></div>
+        <button id="btnRegister" class="btn-primary">
+          <i data-lucide="user-plus" class="w-4 h-4 inline mr-1"></i> Daftar Gratis
+        </button>
+        <div class="flex items-center gap-2 p-3 rounded-2xl bg-amber-50 border border-amber-200">
+          <i data-lucide="gift" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
+          <p class="text-xs text-amber-800 font-bold">
+            Dapat <span class="text-amber-900">3 kredit gratis</span> untuk mulai!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center text-[11px] text-slate-400 mt-6 leading-relaxed">
+      Follow-for-follow bisa melanggar ToS Instagram/TikTok.<br>
+      Pakai dengan risiko sendiri — jangan unfollow setelah dapat kredit.
+    </p>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP VIEW (setelah login)
+     ============================================================ -->
+<div id="appView" class="hidden min-h-screen pb-24">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="max-w-2xl mx-auto px-4 h-16 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 grid place-items-center shadow-lg shadow-brand-500/30 flex-shrink-0">
+        <i data-lucide="users-round" class="w-5 h-5 text-white"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div id="headerUsername" class="font-black text-sm leading-tight truncate">—</div>
+        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SalingFollow</div>
+      </div>
+      <button id="btnLogout" class="icon-header-btn" title="Keluar">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-4 pt-5">
+
+    <!-- Pending Banner -->
+    <div id="pendingBanner" class="hidden mb-4">
+      <button id="btnOpenVerify" class="w-full rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white p-4 shadow-xl shadow-amber-500/30 flex items-center gap-3 active:scale-[.98] transition-transform">
+        <div class="w-10 h-10 rounded-xl bg-white/25 backdrop-blur grid place-items-center flex-shrink-0">
+          <i data-lucide="bell-ring" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-1 text-left min-w-0">
+          <div class="font-black text-sm">Ada yang klaim follow kamu!</div>
+          <div class="text-[11px] text-white/90 font-semibold">
+            Klik untuk verifikasi (<span id="pendingCount">0</span>)
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-5 h-5 flex-shrink-0"></i>
+      </button>
+    </div>
+
+    <!-- Credits Card -->
+    <div class="credits-card mb-5">
+      <div class="relative flex items-center justify-between gap-4">
+        <div>
+          <div class="text-[10px] font-black uppercase tracking-widest text-white/80 mb-1">Kredit Kamu</div>
+          <div id="creditsValue" class="text-4xl font-black leading-none">—</div>
+          <div class="text-xs text-white/80 mt-2 font-semibold">
+            1 follow = +1 kredit • Boost 24j = −3 kredit
+          </div>
+        </div>
+        <div class="w-16 h-16 rounded-3xl bg-white/20 backdrop-blur grid place-items-center pulse-ring flex-shrink-0">
+          <i data-lucide="coins" class="w-8 h-8"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: FEED -->
+    <section id="tabFeed" class="tab-section space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="font-black text-lg">Cari Follow 🔍</h2>
+        <button id="btnRefreshFeed" class="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+        </button>
+      </div>
+      <p class="text-xs text-slate-500 -mt-2">
+        Klik follow, balik ke sini, konfirmasi. Nanti pemilik verifikasi → dapat +1 kredit.
+      </p>
+      <div id="feedList" class="space-y-3"></div>
+      <div id="feedEmpty" class="hidden">
+        <div class="empty-state">
+          <div class="empty-icon"><i data-lucide="inbox" class="w-10 h-10 text-slate-400"></i></div>
+          <h3 class="empty-title">Belum ada akun untuk di-follow</h3>
+          <p class="empty-desc">Refresh nanti, atau tambah akunmu dulu di tab "Akun" biar member lain follow balik.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: ACCOUNTS -->
+    <section id="tabAccounts" class="tab-section space-y-4 hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="font-black text-lg">Akun Saya 📱</h2>
+        <button id="btnAddAccount" class="btn-sm-primary">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah
+        </button>
+      </div>
+      <p class="text-xs text-slate-500 -mt-2">Boost akunmu biar muncul di atas feed member lain.</p>
+      <div id="accountsList" class="space-y-3"></div>
+      <div id="accountsEmpty" class="hidden">
+        <div class="empty-state">
+          <div class="empty-icon"><i data-lucide="user-plus" class="w-10 h-10 text-slate-400"></i></div>
+          <h3 class="empty-title">Belum ada akun</h3>
+          <p class="empty-desc">Tambah IG/TikTok/YouTube-mu biar bisa di-follow member lain.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: HISTORY -->
+    <section id="tabHistory" class="tab-section space-y-4 hidden">
+      <h2 class="font-black text-lg">Riwayat Klaim 📜</h2>
+      <div id="historyList" class="space-y-2"></div>
+      <div id="historyEmpty" class="hidden">
+        <div class="empty-state">
+          <div class="empty-icon"><i data-lucide="history" class="w-10 h-10 text-slate-400"></i></div>
+          <h3 class="empty-title">Belum ada aktivitas</h3>
+          <p class="empty-desc">Mulai follow akun lain di tab Feed.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: PROFILE -->
+    <section id="tabProfile" class="tab-section space-y-4 hidden">
+      <h2 class="font-black text-lg">Profil 👤</h2>
+
+      <div class="card-base">
+        <div class="flex items-center gap-4 mb-5">
+          <div id="profileAvatar" class="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 grid place-items-center text-white text-2xl font-black shadow-lg shadow-brand-500/30 flex-shrink-0">?</div>
+          <div class="min-w-0 flex-1">
+            <div id="profileName" class="font-black text-lg truncate">—</div>
+            <div id="profileUsername" class="text-xs text-slate-500 font-mono">@—</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="stat-box">
+            <div class="stat-box-label">Kredit</div>
+            <div id="statCredits" class="stat-box-value text-brand-600">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-label">Follow Given</div>
+            <div id="statGiven" class="stat-box-value text-slate-800">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-box-label">Follow Received</div>
+            <div id="statReceived" class="stat-box-value text-slate-800">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-base">
+        <h3 class="section-title mb-3">Cara Kerja</h3>
+        <div class="text-xs text-slate-600 space-y-2.5 leading-relaxed">
+          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">1.</span><span>Follow akun di Feed, balik ke app, klik konfirmasi.</span></div>
+          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">2.</span><span>Pemilik akun dapat notif → approve → kamu <b class="text-brand-700">+1 kredit</b>.</span></div>
+          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">3.</span><span>Kalau nggak dibalas 48 jam, auto-approve.</span></div>
+          <div class="flex gap-2"><span class="text-brand-600 font-black flex-shrink-0">4.</span><span>Pakai kredit buat <b>boost</b> akunmu — <b>3 kredit</b>/24 jam.</span></div>
+          <div class="flex gap-2"><span class="text-amber-600 font-black flex-shrink-0">⚠</span><span class="text-amber-800">Jangan bohong. Target reject 3× → kamu bisa di-ban.</span></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="max-w-2xl mx-auto grid grid-cols-4 h-16">
+      <button data-tab="feed" class="tab-btn">
+        <i data-lucide="compass" class="w-5 h-5"></i><span>Feed</span>
+      </button>
+      <button data-tab="accounts" class="tab-btn">
+        <i data-lucide="user-circle" class="w-5 h-5"></i><span>Akun</span>
+      </button>
+      <button data-tab="history" class="tab-btn">
+        <i data-lucide="history" class="w-5 h-5"></i><span>Riwayat</span>
+      </button>
+      <button data-tab="profile" class="tab-btn">
+        <i data-lucide="user" class="w-5 h-5"></i><span>Profil</span>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- ============================================================
+     MODAL: ADD ACCOUNT
+     ============================================================ -->
+<div id="modalAddAccount" class="modal-wrapper hidden">
+  <div class="modal-backdrop" data-close-modal="modalAddAccount"></div>
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Tambah Akun Sosmed</h3>
+      <button class="modal-close" data-close-modal="modalAddAccount">
+        <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+      </button>
+    </div>
+    <div class="modal-body space-y-4">
+      <div>
+        <label class="form-label">Platform</label>
+        <div id="platformGrid" class="grid grid-cols-5 gap-2"></div>
+      </div>
+      <div>
+        <label class="form-label">Username (tanpa @)</label>
+        <input id="accUsername" type="text" placeholder="username" autocomplete="off" class="form-input font-mono">
+      </div>
+      <div>
+        <label class="form-label">Link Profil Lengkap</label>
+        <input id="accUrl" type="url" placeholder="https://instagram.com/username" class="form-input">
+      </div>
+      <div id="addAccStatus" class="status-msg hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnSaveAccount" class="btn-primary">
+        Simpan Akun
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: BOOST
+     ============================================================ -->
+<div id="modalBoost" class="modal-wrapper hidden">
+  <div class="modal-backdrop" data-close-modal="modalBoost"></div>
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Boost Akun 🚀</h3>
+      <button class="modal-close" data-close-modal="modalBoost">
+        <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
+      </button>
+    </div>
+    <div class="modal-body space-y-4">
+      <div class="rounded-2xl bg-gradient-to-br from-brand-50 to-white border border-brand-200 p-4">
+        <div class="text-[10px] font-black uppercase tracking-widest text-brand-700 mb-1">Akun yang Di-boost</div>
+        <div id="boostTargetName" class="font-black text-sm">@—</div>
+      </div>
+      <div>
+        <label class="form-label">Durasi</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button data-dur="24" class="boost-dur-btn boost-dur-active">24 jam</button>
+          <button data-dur="48" class="boost-dur-btn">48 jam</button>
+          <button data-dur="72" class="boost-dur-btn">72 jam</button>
+        </div>
+      </div>
+      <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3.5 flex items-start gap-2.5">
+        <i data-lucide="info" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
+        <div class="text-xs text-amber-800 leading-relaxed">
+          Biaya: <b id="boostCost">3 kredit</b> • Kreditmu: <b id="boostMyCredits">—</b>
+        </div>
+      </div>
+      <div id="boostStatus" class="status-msg hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnConfirmBoost" class="btn-primary">
+        <i data-lucide="rocket" class="w-4 h-4 inline mr-1"></i> Konfirmasi Boost
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toasts"></div>
+
+<!-- ============================================================
+     SCRIPTS — URUTAN PENTING! JANGAN DIACAK
+     ============================================================ -->
+<script src="assets/js/config.js"></script>
+<script src="assets/js/client.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/profile.js"></script>
+<script src="assets/js/feed.js"></script>
+<script src="assets/js/accounts.js"></script>
+<script src="assets/js/claims.js"></script>
+<script src="assets/js/boost.js"></script>
+<script src="assets/js/history.js"></script>
+<script src="assets/js/tabs.js"></script>
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>
