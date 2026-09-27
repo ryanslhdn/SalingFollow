@@ -142,22 +142,22 @@
   /* ============================================================
      PILIH AKUN → kalau YouTube, minta bukti
      ============================================================ */
-  function chooseFollowerAndClaim(targetId) {
+  async function chooseFollowerAndClaim(targetId) {
     const t = state.feed.find(a => a.id === targetId);
     if (!t) return;
 
-    const choices = state.accounts.filter(a => a.platform === t.platform);
+    // Ambil list akun follower yang BELUM follow target ini
+    const { data: availableAccounts, error: availErr } = await sb.rpc('available_follower_accounts', {
+      p_target_id: targetId
+    });
 
-    if (!choices.length) {
-      const p = PLATFORMS[t.platform] || { name: t.platform };
-      toast(`Kamu belum punya akun ${p.name}. Tambah dulu di tab Akun.`, 'error', 4000);
-      setTimeout(() => {
-        state.selectedPlatform = t.platform;
-        App.switchTab?.('accounts');
-        setTimeout(() => App.openAddAccountWithPlatform?.(t.platform), 200);
-      }, 1200);
-      return;
+    if (availErr) {
+      console.error('[Available]', availErr);
+      return toast('Gagal cek akun: ' + availErr.message, 'error');
     }
+
+    // Ambil status total
+    const { data: status } = await sb.rpc('check_target_available', { p_target_id: targetId });
 
     state.currentTarget = t;
     $('chooseTargetName').textContent = '@' + t.username;
@@ -165,23 +165,71 @@
 
     const wrap = $('followerAccountChoices');
     const noAcc = $('chooseNoAccount');
+    const noAccPlat = $('chooseNoAccountPlatform');
+
+    // Case 1: Tidak punya akun platform ini sama sekali
+    if (!status || status.no_account) {
+      wrap.innerHTML = '';
+      if (noAccPlat) noAccPlat.textContent = (PLATFORMS[t.platform] || {}).name || t.platform;
+      if (noAcc) noAcc.classList.remove('hidden');
+      App.openModal?.('modalChooseFollower');
+      icon();
+      return;
+    }
+
+    // Case 2: Semua akun sudah pernah follow target ini
+    if (status.all_used) {
+      if (noAcc) noAcc.classList.add('hidden');
+      wrap.innerHTML = `
+        <div class="info-box warn">
+          <i data-lucide="alert-triangle"></i>
+          <div style="flex:1">
+            <div style="font-weight:800;margin-bottom:4px">Semua akun ${(PLATFORMS[t.platform] || {}).name} kamu sudah pernah follow akun ini</div>
+            <div style="font-size:12px;line-height:1.5">
+              Kalau mau follow akun ini lagi, kamu perlu <b>tambah akun ${(PLATFORMS[t.platform] || {}).name} baru</b> di tab Akun.
+              Akun lain boleh follow target ini — tapi tidak dengan akun yang sama.
+            </div>
+            <button type="button" onclick="App.closeModal('modalChooseFollower'); App.switchTab('accounts'); setTimeout(() => App.openAddAccountWithPlatform && App.openAddAccountWithPlatform('${esc(t.platform)}'), 300);"
+                    class="btn-sm-primary" style="margin-top:10px;font-size:12px">
+              <i data-lucide="plus" style="width:13px;height:13px"></i> Tambah Akun Baru
+            </button>
+          </div>
+        </div>
+      `;
+      App.openModal?.('modalChooseFollower');
+      icon();
+      return;
+    }
+
+    // Case 3: Ada akun yang available
     if (noAcc) noAcc.classList.add('hidden');
 
     const p = PLATFORMS[t.platform];
-    wrap.innerHTML = choices.map(a => `
-      <button data-from="${esc(a.id)}" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);text-align:left;transition:all .15s;font-family:inherit;cursor:pointer"
-              onmouseover="this.style.borderColor='var(--green-500)';this.style.background='var(--green-50)'"
-              onmouseout="this.style.borderColor='var(--line)';this.style.background='var(--surface)'">
-        <div style="width:40px;height:40px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;background:${p.color}">
-          <i data-lucide="${p.icon}" style="width:18px;height:18px;color:#fff"></i>
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@${esc(a.username)}</div>
-          <div style="font-size:11.5px;color:var(--ink-3);margin-top:2px">${p.name}</div>
-        </div>
-        <i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--ink-3);flex-shrink:0"></i>
-      </button>
-    `).join('');
+    const usedCount = (status.total || 0) - (status.available || 0);
+    const infoText = usedCount > 0
+      ? `Kamu punya ${status.available} akun yang belum follow akun ini (${usedCount} sudah pernah)`
+      : `Kamu punya ${status.available} akun ${p.name} yang bisa dipakai`;
+
+    wrap.innerHTML = `
+      <div style="padding:10px 12px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;color:#1e40af;margin-bottom:10px;display:flex;gap:8px">
+        <i data-lucide="info" style="width:14px;height:14px;flex-shrink:0;margin-top:1px"></i>
+        <span>${infoText}</span>
+      </div>
+      ${(availableAccounts || []).map(a => `
+        <button data-from="${esc(a.id)}" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);text-align:left;transition:all .15s;font-family:inherit;cursor:pointer;margin-bottom:6px"
+                onmouseover="this.style.borderColor='var(--green-500)';this.style.background='var(--green-50)'"
+                onmouseout="this.style.borderColor='var(--line)';this.style.background='var(--surface)'">
+          <div style="width:40px;height:40px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;background:${p.color}">
+            <i data-lucide="${p.icon}" style="width:18px;height:18px;color:#fff"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@${esc(a.username)}</div>
+            <div style="font-size:11.5px;color:var(--ink-3);margin-top:2px">${p.name}</div>
+          </div>
+          <i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--ink-3);flex-shrink:0"></i>
+        </button>
+      `).join('')}
+    `;
 
     wrap.querySelectorAll('[data-from]').forEach(b => {
       b.addEventListener('click', () => {
