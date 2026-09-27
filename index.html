@@ -693,6 +693,52 @@ tailwind.config = {
 </div>
 
 <!-- ============================================================
+     MODAL: EDIT TARGET
+     ============================================================ -->
+<div id="modalEditTarget" class="modal-wrapper hidden">
+  <div class="modal-backdrop" data-close-modal="modalEditTarget"></div>
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Akun Target</h3>
+      <button class="modal-close" data-close-modal="modalEditTarget">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="modal-body space-y-4">
+      <p style="font-size:13px;color:var(--ink-3);margin:0;line-height:1.5">
+        Perbaiki username atau link profil kalau ada salah ketik.
+      </p>
+
+      <div>
+        <label class="form-label">Platform</label>
+        <div style="padding:12px 14px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;gap:10px">
+          <div id="editTargetPlatIcon" style="width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:#64748b">
+            <i data-lucide="globe" style="width:16px;height:16px;color:#fff"></i>
+          </div>
+          <div id="editTargetPlatName" style="font-weight:700;font-size:13.5px;color:var(--ink)">—</div>
+          <span style="margin-left:auto;font-size:10.5px;color:var(--ink-3);font-weight:600">tidak bisa diganti</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Username (tanpa @)</label>
+        <input id="editTargetUsername" type="text" placeholder="username" class="form-input" style="font-family:ui-monospace,monospace">
+      </div>
+
+      <div>
+        <label class="form-label">Link Profil Lengkap</label>
+        <input id="editTargetUrl" type="url" placeholder="https://instagram.com/username" class="form-input">
+      </div>
+
+      <div id="editTargetStatus" class="status-msg hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnSaveEditTarget" class="btn-primary">Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
      MODAL: REQUEST FOLLOWER
      ============================================================ -->
 <div id="modalRequest" class="modal-wrapper hidden">
