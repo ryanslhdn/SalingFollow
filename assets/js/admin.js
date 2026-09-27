@@ -116,7 +116,7 @@
     icon();
   }
 
-  /* ---------- ADJUST CREDIT (custom confirm) ---------- */
+  /* ---------- ADJUST CREDIT (custom confirm + prompt) ---------- */
   async function adminAdjustCredits(userId, sign) {
     const ok = await App.confirm({
       title: sign > 0 ? 'Tambah Kredit' : 'Kurangi Kredit',
@@ -130,10 +130,19 @@
     });
     if (!ok) return;
 
-    const amt = prompt('Jumlah kredit:', '10');
+    const amt = await App.prompt({
+      title: sign > 0 ? 'Tambah Kredit' : 'Kurangi Kredit',
+      desc: 'Masukkan jumlah kredit',
+      placeholder: '10',
+      defaultValue: '10',
+      type: 'number',
+      okText: 'Lanjut',
+      icon: 'coins'
+    });
     if (!amt) return;
+
     const amount = Math.abs(Number(amt)) * sign;
-    if (!amount || isNaN(amount)) return;
+    if (!amount || isNaN(amount)) return toast('Jumlah tidak valid', 'error');
 
     const { error } = await sb.rpc('admin_add_credits', {
       p_key: ADMIN_KEY(),
@@ -148,7 +157,7 @@
     await Promise.all([loadAdminUsers(), loadAdminStats()]);
   }
 
-  /* ---------- TOGGLE BAN (custom confirm) ---------- */
+  /* ---------- TOGGLE BAN ---------- */
   async function adminToggleBan(userId, currentlyBanned) {
     const ok = await App.confirm({
       title: currentlyBanned ? 'Unban user ini?' : 'Ban user ini?',
@@ -208,14 +217,16 @@
     }
 
     const stMap = {
-      pending:  { label: 'Pending',  style: 'background:#fffbeb;color:#b45309' },
-      approved: { label: 'Approved', style: 'background:#ecfdf5;color:#047857' },
-      rejected: { label: 'Rejected', style: 'background:#fef2f2;color:#b91c1c' },
+      pending:       { label: 'Pending',            style: 'background:#fffbeb;color:#b45309' },
+      approved:      { label: 'Approved',           style: 'background:#ecfdf5;color:#047857' },
+      rejected:      { label: 'Rejected',           style: 'background:#fef2f2;color:#b91c1c' },
+      need_reupload: { label: 'Minta Upload Ulang', style: 'background:#dbeafe;color:#1e40af' },
     };
 
     wrap.innerHTML = data.map((p, i) => {
       const st = stMap[p.status] || stMap.pending;
 
+      // Bukti transfer
       const proofHtml = p.proof_url ? `
         <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:6px">
@@ -232,6 +243,34 @@
           <span>Bukti transfer tidak diupload</span>
         </div>
       `;
+
+      // Pesan admin (kalau need_reupload / rejected)
+      const adminNoteHtml = p.admin_note ? `
+        <div style="margin-top:12px;padding:12px 14px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe">
+          <div style="font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1e40af;margin-bottom:4px">
+            Pesan Admin
+          </div>
+          <div style="font-size:12.5px;color:#1e3a8a;line-height:1.5">${esc(p.admin_note)}</div>
+        </div>
+      ` : '';
+
+      // Tombol aksi
+      let actionsHtml = '';
+      if (p.status === 'pending' || p.status === 'need_reupload') {
+        actionsHtml = `
+          <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
+            <button data-appr="${p.id}" style="flex:1;min-width:100px;padding:10px;border-radius:9px;background:var(--green-500);color:#fff;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;border:none">
+              <i data-lucide="check" style="width:14px;height:14px;display:inline;vertical-align:-2px;margin-right:4px"></i> Approve
+            </button>
+            <button data-reupload="${p.id}" style="flex:1;min-width:100px;padding:10px;border-radius:9px;background:#dbeafe;color:#1e40af;font-weight:700;font-size:13px;border:1px solid #bfdbfe;font-family:inherit;cursor:pointer">
+              <i data-lucide="upload" style="width:14px;height:14px;display:inline;vertical-align:-2px;margin-right:4px"></i> Minta Ulang
+            </button>
+            <button data-rej="${p.id}" style="flex:1;min-width:100px;padding:10px;border-radius:9px;background:var(--red-50);color:#b91c1c;font-weight:700;font-size:13px;border:1px solid #fecaca;font-family:inherit;cursor:pointer">
+              <i data-lucide="x" style="width:14px;height:14px;display:inline;vertical-align:-2px;margin-right:4px"></i> Tolak
+            </button>
+          </div>
+        `;
+      }
 
       return `
         <div class="admin-card" style="padding:16px;margin-bottom:10px;animation:fadeUp .35s ease backwards;animation-delay:${i * 30}ms">
@@ -260,17 +299,8 @@
           </div>
 
           ${proofHtml}
-
-          ${p.status === 'pending' ? `
-            <div style="display:flex;gap:6px;margin-top:12px">
-              <button data-appr="${p.id}" style="flex:1;padding:10px;border-radius:9px;background:var(--green-500);color:#fff;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;border:none">
-                Approve
-              </button>
-              <button data-rej="${p.id}" style="flex:1;padding:10px;border-radius:9px;background:var(--red-50);color:#b91c1c;font-weight:700;font-size:13px;border:1px solid #fecaca;font-family:inherit;cursor:pointer">
-                Reject
-              </button>
-            </div>
-          ` : ''}
+          ${adminNoteHtml}
+          ${actionsHtml}
         </div>
       `;
     }).join('');
@@ -279,11 +309,13 @@
       b.addEventListener('click', () => reviewPurchase(b.dataset.appr, true)));
     wrap.querySelectorAll('[data-rej]').forEach(b =>
       b.addEventListener('click', () => reviewPurchase(b.dataset.rej, false)));
+    wrap.querySelectorAll('[data-reupload]').forEach(b =>
+      b.addEventListener('click', () => requestReupload(b.dataset.reupload)));
 
     icon();
   }
 
-  /* ---------- REVIEW PURCHASE (custom confirm) ---------- */
+  /* ---------- REVIEW PURCHASE (approve/reject) ---------- */
   async function reviewPurchase(pid, approve) {
     let note = null;
 
@@ -310,6 +342,30 @@
     if (error) return toast(error.message, 'error');
 
     toast(approve ? '✅ Disetujui, kredit masuk!' : '❌ Ditolak', approve ? 'success' : 'info');
+    await Promise.all([loadAdminPurchases(), loadAdminStats()]);
+  }
+
+  /* ---------- REQUEST REUPLOAD (minta user upload ulang) ---------- */
+  async function requestReupload(pid) {
+    const msg = await App.prompt({
+      title: 'Minta Bukti Ulang',
+      desc: 'Tulis pesan untuk user — kenapa bukti perlu diupload ulang',
+      placeholder: 'Contoh: Bukti terlalu buram, mohon upload ulang yang lebih jelas',
+      type: 'textarea',
+      okText: 'Kirim Permintaan',
+      icon: 'upload'
+    });
+    if (!msg) return;
+
+    const { error } = await sb.rpc('admin_request_reupload', {
+      p_key: ADMIN_KEY(),
+      p_purchase_id: pid,
+      p_message: msg,
+    });
+
+    if (error) return toast(error.message, 'error');
+
+    toast('Permintaan terkirim ke user', 'success');
     await Promise.all([loadAdminPurchases(), loadAdminStats()]);
   }
 
