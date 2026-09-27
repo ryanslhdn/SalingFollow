@@ -28,7 +28,6 @@ tailwind.config = {
      LANDING PAGE
      ============================================================ -->
 <div id="authView">
-  <!-- Navbar -->
   <header class="ld-nav reveal reveal-down" data-reveal-delay="0">
     <div class="ld-nav-inner">
       <a class="ld-logo" href="#">
@@ -65,7 +64,6 @@ tailwind.config = {
     </div>
   </header>
 
-  <!-- Hero -->
   <section class="ld-hero" id="beranda">
     <div class="ld-hero-inner">
       <div class="ld-hero-content">
@@ -124,25 +122,14 @@ tailwind.config = {
           <i data-lucide="users-round"></i>
         </div>
 
-        <div class="ld-float ld-float-1">
-          <i data-lucide="camera"></i>
-        </div>
-        <div class="ld-float ld-float-2">
-          <i data-lucide="play-circle"></i>
-        </div>
-        <div class="ld-float ld-float-3">
-          <i data-lucide="music"></i>
-        </div>
-        <div class="ld-float ld-float-4">
-          <i data-lucide="rocket"></i>
-        </div>
+        <div class="ld-float ld-float-1"><i data-lucide="camera"></i></div>
+        <div class="ld-float ld-float-2"><i data-lucide="play-circle"></i></div>
+        <div class="ld-float ld-float-3"><i data-lucide="music"></i></div>
+        <div class="ld-float ld-float-4"><i data-lucide="rocket"></i></div>
       </div>
     </div>
   </section>
 
-  <!-- ============================================================
-       TESTIMONI
-       ============================================================ -->
   <section class="ld-section ld-testimoni" id="testimoni">
     <div class="ld-section-inner">
       <div class="ld-section-head reveal reveal-up" data-reveal-delay="0">
@@ -200,9 +187,6 @@ tailwind.config = {
     </div>
   </section>
 
-  <!-- ============================================================
-       KONTAK
-       ============================================================ -->
   <section class="ld-section ld-kontak" id="kontak">
     <div class="ld-section-inner">
       <div class="ld-section-head reveal reveal-up" data-reveal-delay="0">
@@ -215,24 +199,24 @@ tailwind.config = {
       </div>
 
       <div class="ld-kontak-grid">
-        <a href="mailto:mytoolkonten@gmail.com" class="ld-kontak-card reveal reveal-left" data-reveal-delay="100">
+        <a href="mailto:ryanslhdn3@gmail.com" class="ld-kontak-card reveal reveal-left" data-reveal-delay="100">
           <div class="ld-kontak-icon" style="background:linear-gradient(135deg,#3b82f6,#1e40af)">
             <i data-lucide="mail"></i>
           </div>
           <div class="ld-kontak-body">
             <div class="ld-kontak-label">Email</div>
-            <div class="ld-kontak-value">mytoolkonten@gmail.com</div>
+            <div class="ld-kontak-value">ryanslhdn3@gmail.com</div>
           </div>
           <i data-lucide="arrow-up-right" class="ld-kontak-arrow"></i>
         </a>
 
-        <a href="https://wa.me/6289509558504" target="_blank" rel="noopener" class="ld-kontak-card reveal reveal-right" data-reveal-delay="200">
+        <a href="https://wa.me/6285888082252" target="_blank" rel="noopener" class="ld-kontak-card reveal reveal-right" data-reveal-delay="200">
           <div class="ld-kontak-icon" style="background:linear-gradient(135deg,#25d366,#128c7e)">
             <i data-lucide="message-circle"></i>
           </div>
           <div class="ld-kontak-body">
             <div class="ld-kontak-label">WhatsApp</div>
-            <div class="ld-kontak-value">+62 895-0955-8504</div>
+            <div class="ld-kontak-value">+62 858-8808-2252</div>
           </div>
           <i data-lucide="arrow-up-right" class="ld-kontak-arrow"></i>
         </a>
@@ -240,10 +224,9 @@ tailwind.config = {
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="ld-footer">
     <div class="ld-footer-inner">
-      <div class="ld-footer-copy">© 2025 SalingFollow · Dibuat untuk creator</div>
+      <div class="ld-footer-copy">© 2025 SalingFollow · Dibuat dengan ❤️ untuk creator Indonesia</div>
       <div class="ld-footer-links">
         <a href="#testimoni">Testimoni</a>
         <a href="#kontak">Kontak</a>
@@ -324,13 +307,22 @@ tailwind.config = {
 <div id="appView" class="hidden">
   <header class="app-header">
     <div class="app-header-inner">
-      <div class="header-logo"><i data-lucide="users-round"></i></div>
+      <button id="headerAvatarBtn" class="header-avatar" title="Profil" onclick="App.switchTab && App.switchTab('profile')">
+        <span id="headerAvatarLetter">?</span>
+        <span class="header-avatar-ring"></span>
+      </button>
       <div class="header-text">
+        <div class="header-greeting" id="headerGreeting">Halo 👋</div>
         <div id="headerUsername" class="header-name">—</div>
-        <div class="header-sub">SalingFollow</div>
       </div>
-      <button id="btnOpenStore" class="icon-header-btn" title="Toko Kredit"><i data-lucide="shopping-bag"></i></button>
-      <button id="btnLogout" class="icon-header-btn" title="Keluar"><i data-lucide="log-out"></i></button>
+      <div class="header-actions">
+        <button id="btnOpenStore" class="icon-header-btn" title="Toko Kredit">
+          <i data-lucide="shopping-bag"></i>
+        </button>
+        <button id="btnLogout" class="icon-header-btn danger" title="Keluar">
+          <i data-lucide="log-out"></i>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -349,16 +341,41 @@ tailwind.config = {
     </div>
 
     <div class="stats-row">
-      <div class="stat-card delay-1"><div class="stat-icon green"><i data-lucide="coins"></i></div><div class="stat-value" id="creditsValue">—</div><div class="stat-label">Kredit Kamu</div><div class="stat-sub">1 follow = +2 kredit</div></div>
-      <div class="stat-card delay-2"><div class="stat-icon orange"><i data-lucide="user-plus"></i></div><div class="stat-value" id="statGiven">0</div><div class="stat-label">Follow Diberikan</div><div class="stat-sub">Bantuan ke member lain</div></div>
-      <div class="stat-card delay-3"><div class="stat-icon blue"><i data-lucide="heart"></i></div><div class="stat-value" id="statReceived">0</div><div class="stat-label">Follow Diterima</div><div class="stat-sub">Bantuan dari member lain</div></div>
-      <div class="stat-card delay-4"><div class="stat-icon purple"><i data-lucide="layers"></i></div><div class="stat-value" id="boostCount">0</div><div class="stat-label">Akun Aktif</div><div class="stat-sub">Akun terdaftar di profil</div></div>
+      <div class="stat-card delay-1">
+        <div class="stat-icon green"><i data-lucide="coins"></i></div>
+        <div class="stat-value" id="creditsValue">—</div>
+        <div class="stat-label">Kredit Kamu</div>
+        <div class="stat-sub">1 follow = +2 kredit</div>
+      </div>
+      <div class="stat-card delay-2">
+        <div class="stat-icon orange"><i data-lucide="user-plus"></i></div>
+        <div class="stat-value" id="statGiven">0</div>
+        <div class="stat-label">Follow Diberikan</div>
+        <div class="stat-sub">Bantuan ke member lain</div>
+      </div>
+      <div class="stat-card delay-3">
+        <div class="stat-icon blue"><i data-lucide="heart"></i></div>
+        <div class="stat-value" id="statReceived">0</div>
+        <div class="stat-label">Follow Diterima</div>
+        <div class="stat-sub">Bantuan dari member lain</div>
+      </div>
+      <div class="stat-card delay-4">
+        <div class="stat-icon purple"><i data-lucide="layers"></i></div>
+        <div class="stat-value" id="boostCount">0</div>
+        <div class="stat-label">Akun Aktif</div>
+        <div class="stat-sub">Akun terdaftar di profil</div>
+      </div>
     </div>
 
     <section id="tabFeed" class="tab-section">
       <div class="sec-head">
-        <div class="sec-head-left"><h2 class="sec-title">Cari Follow</h2><p class="sec-desc">Follow akun target di bawah pakai akunmu → dapat +2 kredit.</p></div>
-        <button id="btnRefreshFeed" class="sec-action"><i data-lucide="refresh-cw"></i> Refresh</button>
+        <div class="sec-head-left">
+          <h2 class="sec-title">Cari Follow</h2>
+          <p class="sec-desc">Follow akun target di bawah pakai akunmu → dapat +2 kredit.</p>
+        </div>
+        <button id="btnRefreshFeed" class="sec-action">
+          <i data-lucide="refresh-cw"></i> Refresh
+        </button>
       </div>
       <div id="feedNoAccountWarning" class="hidden info-box warn" style="margin-bottom:16px">
         <i data-lucide="alert-triangle"></i>
@@ -380,10 +397,16 @@ tailwind.config = {
 
     <section id="tabAccounts" class="tab-section hidden">
       <div class="sec-head">
-        <div class="sec-head-left"><h2 class="sec-title">Akun Saya</h2><p class="sec-desc">Akun-akun ini dipakai untuk follow orang lain.</p></div>
+        <div class="sec-head-left">
+          <h2 class="sec-title">Akun Saya</h2>
+          <p class="sec-desc">Akun-akun ini dipakai untuk follow orang lain.</p>
+        </div>
         <button id="btnAddAccount" class="btn-sm-primary"><i data-lucide="plus"></i> Tambah</button>
       </div>
-      <div class="info-box info" style="margin-bottom:16px"><i data-lucide="info"></i><span>Setiap akun di sini bisa dipakai follow akun target user lain.</span></div>
+      <div class="info-box info" style="margin-bottom:16px">
+        <i data-lucide="info"></i>
+        <span>Setiap akun di sini bisa dipakai follow akun target user lain.</span>
+      </div>
       <div id="accountsList" class="space-y-3"></div>
       <div id="accountsEmpty" class="hidden">
         <div class="empty-state">
@@ -396,12 +419,18 @@ tailwind.config = {
 
     <section id="tabAddFollow" class="tab-section hidden">
       <div class="sec-head">
-        <div class="sec-head-left"><h2 class="sec-title">Tambah Follow</h2><p class="sec-desc">Daftarkan akun yang mau ditambahi follower.</p></div>
+        <div class="sec-head-left">
+          <h2 class="sec-title">Tambah Follow</h2>
+          <p class="sec-desc">Daftarkan akun yang mau ditambahi follower.</p>
+        </div>
         <button id="btnAddTarget" class="btn-sm-primary"><i data-lucide="plus"></i> Daftarkan Akun</button>
       </div>
       <div class="info-box success" style="margin-bottom:16px">
         <i data-lucide="lightbulb"></i>
-        <div><div style="font-weight:700;margin-bottom:2px">1 kredit = 1 follower</div><div>Setelah akun target terdaftar, isi jumlah follower saat daftar atau klik "Minta Follower" nanti.</div></div>
+        <div>
+          <div style="font-weight:700;margin-bottom:2px">1 kredit = 1 follower</div>
+          <div>Setelah akun target terdaftar, isi jumlah follower saat daftar atau klik "Minta Follower" nanti.</div>
+        </div>
       </div>
       <div id="targetAccountsList" class="space-y-3" style="margin-bottom:24px"></div>
       <div id="targetAccountsEmpty" class="hidden">
@@ -411,7 +440,9 @@ tailwind.config = {
           <p class="empty-desc">Daftarkan akun yang mau ditambahi follower.</p>
         </div>
       </div>
-      <div class="sec-head" style="margin-top:28px"><div class="sec-head-left"><h2 class="sec-title" style="font-size:16px">Request Follower</h2></div></div>
+      <div class="sec-head" style="margin-top:28px">
+        <div class="sec-head-left"><h2 class="sec-title" style="font-size:16px">Request Follower</h2></div>
+      </div>
       <div id="requestsList" class="space-y-2"></div>
       <div id="requestsEmpty" class="hidden">
         <div class="empty-state" style="padding:32px 24px">
@@ -423,7 +454,10 @@ tailwind.config = {
 
     <section id="tabHistory" class="tab-section hidden">
       <div class="sec-head">
-        <div class="sec-head-left"><h2 class="sec-title">Riwayat Klaim</h2><p class="sec-desc">Semua klaim follow yang kamu lakukan.</p></div>
+        <div class="sec-head-left">
+          <h2 class="sec-title">Riwayat Klaim</h2>
+          <p class="sec-desc">Semua klaim follow yang kamu lakukan.</p>
+        </div>
       </div>
       <div id="historyList" class="space-y-2"></div>
       <div id="historyEmpty" class="hidden">
@@ -436,11 +470,19 @@ tailwind.config = {
     </section>
 
     <section id="tabProfile" class="tab-section hidden">
-      <div class="sec-head"><div class="sec-head-left"><h2 class="sec-title">Profil Saya</h2><p class="sec-desc">Info akun dan cara kerja sistem.</p></div></div>
+      <div class="sec-head">
+        <div class="sec-head-left">
+          <h2 class="sec-title">Profil Saya</h2>
+          <p class="sec-desc">Info akun dan cara kerja sistem.</p>
+        </div>
+      </div>
       <div class="profile-card">
         <div class="profile-top">
           <div id="profileAvatar" class="profile-avatar">?</div>
-          <div style="min-width:0;flex:1"><div id="profileName" class="profile-name">—</div><div id="profileUsername" class="profile-handle">@—</div></div>
+          <div style="min-width:0;flex:1">
+            <div id="profileName" class="profile-name">—</div>
+            <div id="profileUsername" class="profile-handle">@—</div>
+          </div>
         </div>
         <div class="profile-stats">
           <div class="stat-box"><div class="stat-box-label">Kredit</div><div id="profileStatCredits" class="stat-box-value brand">0</div></div>
@@ -461,28 +503,51 @@ tailwind.config = {
 
   <nav class="bottom-nav">
     <div class="bottom-nav-inner">
-      <button data-tab="feed" class="tab-btn active"><i data-lucide="compass"></i><span>Feed</span></button>
-      <button data-tab="accounts" class="tab-btn"><i data-lucide="user-circle"></i><span>Akun</span></button>
-      <button data-tab="addFollow" class="tab-btn"><i data-lucide="target"></i><span>Tambah</span></button>
-      <button data-tab="history" class="tab-btn"><i data-lucide="history"></i><span>Riwayat</span></button>
-      <button data-tab="profile" class="tab-btn"><i data-lucide="user"></i><span>Profil</span></button>
+      <button data-tab="feed" class="tab-btn active">
+        <span class="tab-icon"><i data-lucide="compass"></i></span>
+        <span class="tab-label">Feed</span>
+      </button>
+      <button data-tab="accounts" class="tab-btn">
+        <span class="tab-icon"><i data-lucide="user-circle"></i></span>
+        <span class="tab-label">Akun</span>
+      </button>
+      <button data-tab="addFollow" class="tab-btn tab-btn-center">
+        <span class="tab-fab"><i data-lucide="plus"></i></span>
+        <span class="tab-label">Tambah</span>
+      </button>
+      <button data-tab="history" class="tab-btn">
+        <span class="tab-icon"><i data-lucide="history"></i></span>
+        <span class="tab-label">Riwayat</span>
+      </button>
+      <button data-tab="profile" class="tab-btn">
+        <span class="tab-icon"><i data-lucide="user"></i></span>
+        <span class="tab-label">Profil</span>
+      </button>
     </div>
   </nav>
 </div>
 
-<!-- STORE VIEW -->
+<!-- ============================================================
+     STORE VIEW
+     ============================================================ -->
 <div id="storeView" class="hidden" style="position:fixed;inset:0;z-index:80;background:var(--bg);overflow-y:auto">
   <header class="app-header" style="position:sticky;top:0">
     <div class="app-header-inner">
       <button id="btnCloseStore" class="icon-header-btn"><i data-lucide="arrow-left"></i></button>
-      <div class="header-text"><div class="header-name">Toko Kredit</div><div class="header-sub">Tukar kredit jadi follower</div></div>
+      <div class="header-text">
+        <div class="header-name">Toko Kredit</div>
+        <div class="header-sub">Tukar kredit jadi follower</div>
+      </div>
       <div class="header-logo" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i data-lucide="shopping-bag"></i></div>
     </div>
   </header>
   <main class="app-main" style="max-width:640px">
     <div class="info-box success" style="margin-bottom:20px">
       <i data-lucide="coins"></i>
-      <div><div style="font-weight:700;margin-bottom:2px">Kredit kamu: <span id="storeMyCredits">—</span></div><div>Pilih paket, transfer, lalu submit konfirmasi.</div></div>
+      <div>
+        <div style="font-weight:700;margin-bottom:2px">Kredit kamu: <span id="storeMyCredits">—</span></div>
+        <div>Pilih paket, transfer, lalu submit konfirmasi.</div>
+      </div>
     </div>
     <h3 class="howto-title" style="margin-bottom:12px">Pilih Paket</h3>
     <div id="storePackages" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px"></div>
@@ -495,7 +560,9 @@ tailwind.config = {
   </main>
 </div>
 
-<!-- ADMIN VIEW -->
+<!-- ============================================================
+     ADMIN VIEW
+     ============================================================ -->
 <div id="adminView" class="hidden admin-shell">
   <header class="admin-header">
     <div style="max-width:900px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;gap:12px">
@@ -578,7 +645,9 @@ tailwind.config = {
   </main>
 </div>
 
-<!-- MODALS (existing) -->
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
 <div id="modalChooseFollower" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalChooseFollower"></div>
   <div class="modal-card">
