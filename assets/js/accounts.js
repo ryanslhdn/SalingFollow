@@ -1,13 +1,21 @@
 /* ============================================================
-   ACCOUNTS — CRUD akun sosmed user
-   File lengkap dengan platform validation
+   ACCOUNTS — CRUD akun tumbal & utama
    ============================================================ */
 
 (function() {
   const { $, esc, toast, icon, status, clearStatus, openModal, closeModal, PLATFORMS, state } = App;
 
+  // State lokal
+  state.currentAccTab = 'tumbal';   // 'tumbal' | 'main'
+  state.selectedAccType = 'tumbal'; // di modal
+
+  const TYPE_LABEL = {
+    tumbal: { name: 'Tumbal', emoji: '🔻', desc: 'Akun tumbal dipakai untuk follow orang lain dan dapat kredit.' },
+    main:   { name: 'Utama',  emoji: '⭐', desc: 'Akun utama adalah yang mau ditambah follower. Perlu request pakai kredit.' },
+  };
+
   /* ============================================================
-     LOAD ACCOUNTS — tampilkan daftar akun user
+     LOAD ACCOUNTS
      ============================================================ */
   async function loadAccounts() {
     const list = $('accountsList');
@@ -18,6 +26,7 @@
       .from('social_accounts')
       .select('*')
       .eq('user_id', state.user.id)
+      .eq('account_type', state.currentAccTab)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -27,12 +36,10 @@
 
     state.accounts = data || [];
 
-    // Update counter di header kalau ada
-    updateAccountCounter();
-
     if (!state.accounts.length) {
       list.innerHTML = '';
       if (empty) empty.classList.remove('hidden');
+      updateAccountCounter();
       icon();
       return;
     }
@@ -41,16 +48,19 @@
 
     list.innerHTML = state.accounts.map((a, i) => renderAccountCard(a, i)).join('');
 
-    // Binding tombol delete
     list.querySelectorAll('[data-delete-acc]').forEach(b => {
       b.addEventListener('click', () => deleteAccount(b.dataset.deleteAcc));
     });
 
-    // Binding tombol boost
     list.querySelectorAll('[data-boost-acc]').forEach(b => {
       b.addEventListener('click', () => App.openBoost(b.dataset.boostAcc));
     });
 
+    list.querySelectorAll('[data-request-acc]').forEach(b => {
+      b.addEventListener('click', () => App.openFollowRequest(b.dataset.requestAcc));
+    });
+
+    updateAccountCounter();
     icon();
   }
 
@@ -60,9 +70,34 @@
   function renderAccountCard(a, index) {
     const p = PLATFORMS[a.platform] || { name: a.platform, icon: 'globe', color: '#64748b' };
     const boosted = a.boost_until && new Date(a.boost_until) > new Date();
+    const isMain = a.account_type === 'main';
+
+    const typeBadge = isMain
+      ? '<span class="acc-type-badge main">⭐ Utama</span>'
+      : '<span class="acc-type-badge tumbal">🔻 Tumbal</span>';
+
     const boostLabel = boosted
       ? `Aktif sampai ${App.formatDateTime(a.boost_until)}`
       : 'Belum di-boost';
+
+    // Tombol aksi — beda untuk tumbal vs utama
+    const actions = isMain
+      ? `
+        <a href="${esc(a.profile_url)}" target="_blank" rel="noopener" class="acc-btn ghost">
+          <i data-lucide="external-link"></i> Buka
+        </a>
+        <button data-request-acc="${esc(a.id)}" class="acc-btn boost" style="background:var(--green-50);color:var(--green-700);border-color:var(--green-100)">
+          <i data-lucide="user-plus"></i> Minta Follower
+        </button>
+      `
+      : `
+        <a href="${esc(a.profile_url)}" target="_blank" rel="noopener" class="acc-btn ghost">
+          <i data-lucide="external-link"></i> Buka
+        </a>
+        <button data-boost-acc="${esc(a.id)}" class="acc-btn boost">
+          <i data-lucide="rocket"></i> Boost
+        </button>
+      `;
 
     return `
       <div class="account-card ${boosted ? 'boosted' : ''}" style="animation-delay:${index * 40}ms">
@@ -72,25 +107,21 @@
           </div>
           <div class="acc-info">
             <div class="acc-username">@${esc(a.username)}</div>
-            <div class="acc-boost-label ${boosted ? 'active' : ''}">${p.name} • ${boostLabel}</div>
+            <div class="acc-boost-label ${boosted ? 'active' : ''}">${p.name}${boosted ? ' • ' + boostLabel : ''}</div>
+            ${typeBadge}
           </div>
           <button data-delete-acc="${esc(a.id)}" class="acc-del" title="Hapus akun">
             <i data-lucide="trash-2"></i>
           </button>
         </div>
         <div class="acc-actions">
-          <a href="${esc(a.profile_url)}" target="_blank" rel="noopener" class="acc-btn ghost">
-            <i data-lucide="external-link"></i> Buka
-          </a>
-          <button data-boost-acc="${esc(a.id)}" class="acc-btn boost">
-            <i data-lucide="rocket"></i> Boost
-          </button>
+          ${actions}
         </div>
       </div>`;
   }
 
   /* ============================================================
-     UPDATE COUNTER (opsional — kalau ada elemen #boostCount)
+     UPDATE COUNTER
      ============================================================ */
   function updateAccountCounter() {
     const el = $('boostCount');
@@ -98,22 +129,20 @@
   }
 
   /* ============================================================
-     DELETE ACCOUNT
+     DELETE
      ============================================================ */
   async function deleteAccount(id) {
     const acc = state.accounts.find(a => a.id === id);
     if (!acc) return;
 
     const p = PLATFORMS[acc.platform] || { name: acc.platform };
-    const confirmed = confirm(`Hapus akun @${acc.username} (${p.name}) dari daftar?`);
-    if (!confirmed) return;
+    if (!confirm(`Hapus akun @${acc.username} (${p.name}) dari daftar?`)) return;
 
     const { error } = await sb.from('social_accounts').delete().eq('id', id);
     if (error) return toast('Gagal: ' + error.message, 'error');
 
     toast('Akun dihapus', 'success');
 
-    // Refresh: accounts, feed (karena feed bergantung akun), profile (counter)
     await Promise.all([
       loadAccounts(),
       App.loadFeed ? App.loadFeed() : Promise.resolve(),
@@ -122,7 +151,20 @@
   }
 
   /* ============================================================
-     PLATFORM GRID — pilih platform di modal
+     SUB-TAB SWITCHING
+     ============================================================ */
+  function switchAccTab(tab) {
+    state.currentAccTab = tab;
+    document.querySelectorAll('.acc-subtab').forEach(b => {
+      b.classList.toggle('active', b.dataset.accTab === tab);
+    });
+    const desc = $('accTypeDesc');
+    if (desc) desc.textContent = TYPE_LABEL[tab].desc;
+    loadAccounts();
+  }
+
+  /* ============================================================
+     PLATFORM GRID
      ============================================================ */
   function renderPlatformGrid() {
     const grid = $('platformGrid');
@@ -139,17 +181,13 @@
       </button>
     `).join('');
 
-    // Binding click
     grid.querySelectorAll('.platBtn').forEach(b => {
       b.addEventListener('click', () => {
         state.selectedPlatform = b.dataset.plat;
         renderPlatformGrid();
-
-        // Auto-update URL kalau username sudah diisi
         const u = $('accUsername').value.trim().replace(/^@/, '');
         const p = PLATFORMS[state.selectedPlatform];
         if (u && p) $('accUrl').value = p.url(u);
-
         icon();
       });
     });
@@ -158,26 +196,40 @@
   }
 
   /* ============================================================
-     OPEN ADD ACCOUNT — default platform
+     TYPE GRID (Tumbal / Utama)
+     ============================================================ */
+  function renderTypeGrid() {
+    const grid = $('accTypeGrid');
+    if (!grid) return;
+
+    grid.querySelectorAll('.accTypeBtn').forEach(b => {
+      const active = b.dataset.type === state.selectedAccType;
+      b.classList.toggle('active', active);
+
+      // Rebind
+      b.onclick = () => {
+        state.selectedAccType = b.dataset.type;
+        renderTypeGrid();
+      };
+    });
+  }
+
+  /* ============================================================
+     OPEN ADD ACCOUNT
      ============================================================ */
   function openAddAccount() {
     state.selectedPlatform = 'instagram';
+    state.selectedAccType = state.currentAccTab; // Default sesuai tab aktif
     resetAddAccountForm();
     openModal('modalAddAccount');
     setTimeout(() => $('accUsername')?.focus(), 200);
   }
 
-  /* ============================================================
-     OPEN ADD ACCOUNT WITH PLATFORM — dari tombol di feed card
-     ============================================================ */
-  function openAddAccountWithPlatform(platform) {
+  function openAddAccountWithPlatform(platform, type) {
     state.selectedPlatform = platform || 'instagram';
+    state.selectedAccType = type || state.currentAccTab;
     resetAddAccountForm();
-
-    // Update tab ke Akun dulu (kalau dipanggil dari feed)
     if (App.switchTab) App.switchTab('accounts');
-
-    // Open modal setelah switch tab
     setTimeout(() => {
       openModal('modalAddAccount');
       setTimeout(() => $('accUsername')?.focus(), 200);
@@ -191,9 +243,13 @@
     const u = $('accUsername');
     const url = $('accUrl');
     if (u) u.value = '';
-    if (url) url.value = '';
+    if (url) {
+      url.value = '';
+      delete url.dataset.manuallyEdited;
+    }
     clearStatus('addAccStatus');
     renderPlatformGrid();
+    renderTypeGrid();
   }
 
   /* ============================================================
@@ -203,25 +259,24 @@
     const username = $('accUsername').value.trim().replace(/^@/, '');
     const url = $('accUrl').value.trim();
 
-    // Validasi dasar
     if (!username) {
       return status('addAccStatus', 'error', 'Username wajib diisi');
     }
     if (!/^[a-zA-Z0-9._-]{2,}$/.test(username)) {
-      return status('addAccStatus', 'error', 'Username tidak valid (huruf/angka/titik/underscore)');
+      return status('addAccStatus', 'error', 'Username tidak valid');
     }
     if (!/^https?:\/\//.test(url)) {
       return status('addAccStatus', 'error', 'Link harus diawali http:// atau https://');
     }
 
-    // Cek duplikat: user tidak boleh daftar akun dengan username + platform yang sama
+    // Cek duplikat
     const duplicate = state.accounts.find(
       a => a.platform === state.selectedPlatform
         && a.username.toLowerCase() === username.toLowerCase()
     );
     if (duplicate) {
       return status('addAccStatus', 'error',
-        `Akun ${PLATFORMS[state.selectedPlatform].name} @${username} sudah pernah ditambahkan`);
+        `Akun ${PLATFORMS[state.selectedPlatform].name} @${username} sudah ada`);
     }
 
     const btn = $('btnSaveAccount');
@@ -237,15 +292,24 @@
         platform: state.selectedPlatform,
         username: username,
         profile_url: url,
+        account_type: state.selectedAccType,
       });
       if (error) throw error;
 
       const p = PLATFORMS[state.selectedPlatform];
-      toast(`Akun ${p.name} @${username} berhasil ditambahkan ✅`, 'success', 3000);
+      const typeName = TYPE_LABEL[state.selectedAccType].name;
+      toast(`Akun ${typeName} ${p.name} @${username} ditambahkan ✅`, 'success', 3000);
+
+      // Auto-switch ke tab yang sesuai
+      state.currentAccTab = state.selectedAccType;
+      document.querySelectorAll('.acc-subtab').forEach(b => {
+        b.classList.toggle('active', b.dataset.accTab === state.currentAccTab);
+      });
+      const desc = $('accTypeDesc');
+      if (desc) desc.textContent = TYPE_LABEL[state.currentAccTab].desc;
 
       closeModal('modalAddAccount');
 
-      // Refresh semua yang butuh data akun
       await Promise.all([
         loadAccounts(),
         App.loadFeed ? App.loadFeed() : Promise.resolve(),
@@ -254,8 +318,7 @@
 
     } catch (e) {
       console.error('[SaveAccount]', e);
-      const msg = e.message || 'Gagal menyimpan akun';
-      status('addAccStatus', 'error', msg);
+      status('addAccStatus', 'error', e.message || 'Gagal menyimpan akun');
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -265,72 +328,59 @@
   }
 
   /* ============================================================
-     AUTO-FILL URL saat username di-input
+     AUTO-FILL URL
      ============================================================ */
   function bindUsernameAutoFill() {
     const usernameInput = $('accUsername');
-    if (!usernameInput) return;
-
-    usernameInput.addEventListener('input', (e) => {
-      const u = e.target.value.trim().replace(/^@/, '');
-      const p = PLATFORMS[state.selectedPlatform];
-      const urlInput = $('accUrl');
-
-      // Hanya auto-fill kalau user belum edit URL manual
-      if (u && p && urlInput && !urlInput.dataset.manuallyEdited) {
-        urlInput.value = p.url(u);
-      }
-    });
-
-    // Track kalau user edit URL manual
     const urlInput = $('accUrl');
+
+    if (usernameInput) {
+      usernameInput.addEventListener('input', (e) => {
+        const u = e.target.value.trim().replace(/^@/, '');
+        const p = PLATFORMS[state.selectedPlatform];
+        if (u && p && urlInput && !urlInput.dataset.manuallyEdited) {
+          urlInput.value = p.url(u);
+        }
+      });
+
+      usernameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          $('accUrl')?.focus();
+        }
+      });
+    }
+
     if (urlInput) {
       urlInput.addEventListener('input', () => {
         urlInput.dataset.manuallyEdited = '1';
       });
-      // Reset flag saat modal dibuka
-      // (dilakukan di resetAddAccountForm)
+      urlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveAccount();
+        }
+      });
     }
   }
 
   /* ============================================================
-     RESET FLAG URL saat form dibuka
-     ============================================================ */
-  const origReset = resetAddAccountForm;
-  resetAddAccountForm = function() {
-    origReset();
-    const urlInput = $('accUrl');
-    if (urlInput) delete urlInput.dataset.manuallyEdited;
-  };
-
-  /* ============================================================
-     BINDING SEMUA EVENT
+     BINDING
      ============================================================ */
   document.addEventListener('DOMContentLoaded', () => {
-    // Tombol tambah akun
+    // Sub-tab
+    document.querySelectorAll('.acc-subtab').forEach(b => {
+      b.addEventListener('click', () => switchAccTab(b.dataset.accTab));
+    });
+
+    // Tombol tambah
     $('btnAddAccount')?.addEventListener('click', openAddAccount);
 
     // Tombol simpan
     $('btnSaveAccount')?.addEventListener('click', saveAccount);
 
-    // Enter di input = submit
-    $('accUrl')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        saveAccount();
-      }
-    });
-
     // Auto-fill URL
     bindUsernameAutoFill();
-
-    // Handle Enter di username → pindah ke URL
-    $('accUsername')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        $('accUrl')?.focus();
-      }
-    });
   });
 
   /* ============================================================
@@ -339,5 +389,6 @@
   App.loadAccounts = loadAccounts;
   App.openAddAccount = openAddAccount;
   App.openAddAccountWithPlatform = openAddAccountWithPlatform;
+  App.switchAccTab = switchAccTab;
 
 })();
