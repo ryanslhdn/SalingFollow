@@ -19,6 +19,55 @@
     b.addEventListener('click', () => switchAuthTab(b.dataset.authTab));
   });
 
+
+  /* ---------- AUTH MODAL OPEN/CLOSE ---------- */
+  function openAuthModal(tab) {
+    const modal = document.getElementById('authModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    switchAuthTab(tab || 'login');
+    // Reset status messages
+    ['loginStatus', 'registerStatus'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  function closeAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function toggleMobileNav() {
+    const menu = document.getElementById('ldMobileMenu');
+    if (menu) menu.classList.toggle('open');
+  }
+  function closeMobileNav() {
+    const menu = document.getElementById('ldMobileMenu');
+    if (menu) menu.classList.remove('open');
+  }
+
+  // Escape to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('authModal');
+      if (modal && !modal.classList.contains('hidden')) closeAuthModal();
+      closeMobileNav();
+    }
+  });
+
+  // Expose
+  window.openAuthModal = openAuthModal;
+  window.closeAuthModal = closeAuthModal;
+  window.toggleMobileNav = toggleMobileNav;
+  window.closeMobileNav = closeMobileNav;
+  App.openAuthModal = openAuthModal;
+  App.closeAuthModal = closeAuthModal;
+
   /* ============================================================
      LOGIN — Support Email ATAU Username
      ============================================================ */
