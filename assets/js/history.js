@@ -29,25 +29,32 @@
     }
 
     empty.classList.add('hidden');
-    list.innerHTML = state.history.map(h => {
-      const p = PLATFORMS[h.target_platform] || { name: h.target_platform, icon: 'globe', color: '#64748b' };
-      const st = STATUS_MAP[h.status] || STATUS_MAP.awaiting_target;
-
-      return `
-        <div class="rounded-2xl bg-white border border-slate-100 p-3.5 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0" style="background:${p.color}">
-            <i data-lucide="${p.icon}" class="w-4 h-4 text-white"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="font-bold text-xs truncate">@${esc(h.target_username)}</div>
-            <div class="text-[10px] text-slate-500 font-semibold">${App.formatDateTime(h.claim_time)}</div>
-          </div>
-          <div class="text-right flex-shrink-0">
-            ${h.credits_awarded > 0 ? `<div class="font-mono font-black text-sm text-emerald-600">+${h.credits_awarded}</div>` : ''}
-            <span class="inline-block px-2 py-0.5 rounded-md ${st.cls} text-[9px] font-black uppercase tracking-wider">${st.label}</span>
-          </div>
-        </div>`;
-    }).join('');
+   list.innerHTML = state.history.map((h, i) => {
+     const p = PLATFORMS[h.target_platform] || { name: h.target_platform, icon: 'globe', color: '#64748b' };
+     const stMap = {
+       awaiting_target: { label:'Menunggu',  cls:'pending' },
+       approved:        { label:'Disetujui', cls:'success' },
+       auto_approved:   { label:'Auto OK',   cls:'success' },
+       rejected:        { label:'Ditolak',   cls:'danger' },
+       expired:         { label:'Expired',   cls:'neutral' },
+     };
+     const st = stMap[h.status] || stMap.awaiting_target;
+   
+     return `
+       <div class="history-item" style="animation-delay:${i * 40}ms">
+         <div class="hi-avatar" style="background:${p.color}">
+           <i data-lucide="${p.icon}"></i>
+         </div>
+         <div class="hi-body">
+           <div class="hi-username">@${esc(h.target_username)}</div>
+           <div class="hi-date">${App.formatDateTime(h.claim_time)}</div>
+         </div>
+         <div class="hi-right">
+           ${h.credits_awarded > 0 ? `<div class="hi-credit">+${h.credits_awarded}</div>` : ''}
+           <span class="hi-status ${st.cls}">${st.label}</span>
+         </div>
+       </div>`;
+   }).join('');
 
     icon();
   }
