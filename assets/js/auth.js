@@ -1,33 +1,18 @@
 /* ============================================================
    AUTH — Login / Register / Logout
+   + Block user banned saat login
    ============================================================ */
 
 (function() {
   const { $, status, icon } = App;
 
-  /* ---------- TAB SWITCHING ---------- */
-  function switchAuthTab(tab) {
-    const isLogin = tab === 'login';
-    $('panelLogin').classList.toggle('hidden', !isLogin);
-    $('panelRegister').classList.toggle('hidden', isLogin);
-    document.querySelectorAll('.auth-tab-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.authTab === tab);
-    });
-  }
-
-  document.querySelectorAll('.auth-tab-btn').forEach(b => {
-    b.addEventListener('click', () => switchAuthTab(b.dataset.authTab));
-  });
-
-
-  /* ---------- AUTH MODAL OPEN/CLOSE ---------- */
+  /* ---------- AUTH MODAL ---------- */
   function openAuthModal(tab) {
     const modal = document.getElementById('authModal');
     if (!modal) return;
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     switchAuthTab(tab || 'login');
-    // Reset status messages
     ['loginStatus', 'registerStatus'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.add('hidden');
@@ -51,7 +36,6 @@
     if (menu) menu.classList.remove('open');
   }
 
-  // Escape to close
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const modal = document.getElementById('authModal');
@@ -60,7 +44,6 @@
     }
   });
 
-  // Expose
   window.openAuthModal = openAuthModal;
   window.closeAuthModal = closeAuthModal;
   window.toggleMobileNav = toggleMobileNav;
@@ -68,8 +51,53 @@
   App.openAuthModal = openAuthModal;
   App.closeAuthModal = closeAuthModal;
 
+  /* ---------- TAB SWITCHING ---------- */
+  function switchAuthTab(tab) {
+    const isLogin = tab === 'login';
+    $('panelLogin').classList.toggle('hidden', !isLogin);
+    $('panelRegister').classList.toggle('hidden', isLogin);
+    document.querySelectorAll('.auth-tab-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.authTab === tab);
+    });
+  }
+
+  document.querySelectorAll('.auth-tab-btn').forEach(b => {
+    b.addEventListener('click', () => switchAuthTab(b.dataset.authTab));
+  });
+
   /* ============================================================
-     LOGIN — Support Email ATAU Username
+     CHECK BANNED — dipanggil setelah login sukses
+     ============================================================ */
+  async function checkBannedAndSignOut(userId) {
+    try {
+      const { data: profile, error } = await sb
+        .from('profiles')
+        .select('is_banned')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        // Kalau profile tidak ada (sudah dihapus admin) → tolak login
+        if (error.code === 'PGRST116') {
+          await sb.auth.signOut();
+          throw new Error('Akun kamu sudah dihapus. Hubungi admin.');
+        }
+        return; // Error lain, biarkan login lanjut
+      }
+
+      if (profile && profile.is_banned === true) {
+        await sb.auth.signOut();
+        throw new Error('Akun kamu di-ban. Hubungi admin untuk info lebih lanjut.');
+      }
+    } catch (e) {
+      if (e.message && e.message.includes('di-ban')) throw e;
+      if (e.message && e.message.includes('dihapus')) throw e;
+      console.warn('[BannedCheck]', e);
+    }
+  }
+
+  /* ============================================================
+     LOGIN
      ============================================================ */
   const loginBtn = $('btnLogin');
   if (loginBtn) {
@@ -97,8 +125,8 @@
 
       try {
         let email = identifier.toLowerCase();
-
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+
         if (!isEmail) {
           status('loginStatus', 'warn', 'Mencari akun...');
           const { data: foundEmail, error: lookupErr } = await sb.rpc('lookup_email_by_username', {
@@ -111,16 +139,17 @@
         }
 
         status('loginStatus', 'warn', 'Memverifikasi...');
-        const { error } = await sb.auth.signInWithPassword({ email, password });
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
-        // ⭐ SUKSES — TUTUP MODAL & LOGIN
-        status('loginStatus', 'success', '✅ Berhasil! Mengalihkan...');
+        // ⭐ CEK STATUS BANNED / DIHAPUS
+        status('loginStatus', 'warn', 'Mengecek status akun...');
+        await checkBannedAndSignOut(data.user.id);
 
-        // Tutup modal otomatis
+        // Sukses — tutup modal otomatis
+        status('loginStatus', 'success', '✅ Berhasil! Mengalihkan...');
         if (typeof closeAuthModal === 'function') closeAuthModal();
 
-        // Reset button state
         loginBtn.disabled = false;
         loginBtn.innerHTML = 'Masuk <i data-lucide="arrow-right" style="width:16px;height:16px"></i>';
         if (window.lucide) window.lucide.createIcons();
@@ -168,7 +197,6 @@
         const { error: e2 } = await sb.auth.signInWithPassword({ email, password });
         if (e2) throw e2;
 
-        // ⭐ SUKSES — TUTUP MODAL
         if (typeof closeAuthModal === 'function') closeAuthModal();
 
         registerBtn.disabled = false;
@@ -188,7 +216,7 @@
   }
 
   /* ============================================================
-     LOGOUT (custom confirm modal)
+     LOGOUT
      ============================================================ */
   async function logout() {
     const ok = await App.confirm({
@@ -209,10 +237,8 @@
   const logoutBtn = document.getElementById('btnLogout');
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
 
-  /* ============================================================
-     EXPOSE
-     ============================================================ */
   App.logout = logout;
   App.switchAuthTab = switchAuthTab;
+  App.checkBannedAndSignOut = checkBannedAndSignOut;
 
 })();
