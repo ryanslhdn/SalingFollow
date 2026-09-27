@@ -41,7 +41,7 @@
     });
 
     list.querySelectorAll('[data-boost-acc]').forEach(b => {
-      b.addEventListener('click', () => App.openBoost(b.dataset.boostAcc));
+      b.addEventListener('click', () => App.openBoost?.(b.dataset.boostAcc));
     });
 
     icon();
@@ -84,12 +84,22 @@
     if (el) el.textContent = state.accounts.length;
   }
 
+  /* ---------- DELETE (custom confirm) ---------- */
   async function deleteAccount(id) {
     const acc = state.accounts.find(a => a.id === id);
     if (!acc) return;
 
     const p = PLATFORMS[acc.platform] || { name: acc.platform };
-    if (!confirm(`Hapus akun @${acc.username} (${p.name})?`)) return;
+
+    const ok = await App.confirm({
+      title: 'Hapus akun ini?',
+      desc: `@${acc.username} (${p.name}) akan dihapus dari daftar akunmu.`,
+      okText: 'Ya, Hapus',
+      cancelText: 'Batal',
+      danger: true,
+      icon: 'trash-2'
+    });
+    if (!ok) return;
 
     const { error } = await sb.from('social_accounts').delete().eq('id', id);
     if (error) return toast('Gagal: ' + error.message, 'error');
@@ -139,14 +149,21 @@
     setTimeout(() => $('accUsername')?.focus(), 200);
   }
 
+  function openAddAccountWithPlatform(platform) {
+    state.selectedPlatform = platform || 'instagram';
+    resetForm();
+    if (App.switchTab) App.switchTab('accounts');
+    setTimeout(() => {
+      openModal('modalAddAccount');
+      setTimeout(() => $('accUsername')?.focus(), 200);
+    }, 100);
+  }
+
   function resetForm() {
     const u = $('accUsername');
     const url = $('accUrl');
     if (u) u.value = '';
-    if (url) {
-      url.value = '';
-      delete url.dataset.manuallyEdited;
-    }
+    if (url) { url.value = ''; delete url.dataset.manuallyEdited; }
     clearStatus('addAccStatus');
     renderPlatformGrid();
   }
@@ -226,5 +243,7 @@
   });
 
   App.loadAccounts = loadAccounts;
+  App.openAddAccount = openAddAccount;
+  App.openAddAccountWithPlatform = openAddAccountWithPlatform;
 
 })();
