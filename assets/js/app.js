@@ -1,3 +1,7 @@
+/* ============================================================
+   APP — Bootstrap utama
+   ============================================================ */
+
 (function() {
   const { $, icon, state } = App;
 
@@ -14,15 +18,20 @@
     $('appView').classList.remove('hidden');
     icon();
 
-    await App.loadProfile();
-    // Accounts harus diload SEBELUM feed (buat cek user punya akun apa belum)
-    await App.loadAccounts();
+    // Load profile & accounts dulu (dibutuhkan oleh feed & targets)
+    await App.loadProfile?.();
+    await App.loadAccounts?.();
+
+    // Load paralel
     await Promise.all([
-      App.loadFeed(),
-      App.loadHistory(),
-      App.loadPendingClaims(),
+      App.loadFeed?.() || Promise.resolve(),
+      App.loadHistory?.() || Promise.resolve(),
+      App.loadPendingClaims?.() || Promise.resolve(),
+      App.loadTargets?.() || Promise.resolve(),
     ]);
-    App.setupRealtime();
+
+    // Setup realtime
+    App.setupRealtime?.();
   }
 
   async function showAdmin() {
@@ -30,13 +39,18 @@
     $('appView').classList.add('hidden');
     $('adminView').classList.remove('hidden');
     icon();
-    await App.initAdmin();
+    await App.initAdmin?.();
   }
 
+  /* ---------- Auth state listener ---------- */
   sb.auth.onAuthStateChange((event, session) => {
-    if (session?.user) { state.user = session.user; showApp(); }
+    if (session?.user) {
+      state.user = session.user;
+      showApp();
+    }
   });
 
+  /* ---------- Init ---------- */
   document.addEventListener('DOMContentLoaded', async () => {
     icon();
 
@@ -46,7 +60,11 @@
     }
 
     const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) { state.user = session.user; await showApp(); }
-    else showAuth();
+    if (session?.user) {
+      state.user = session.user;
+      await showApp();
+    } else {
+      showAuth();
+    }
   });
 })();
