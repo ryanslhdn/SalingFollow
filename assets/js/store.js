@@ -14,12 +14,12 @@
     if (!App.state.adminPackages.length) {
       wrap.innerHTML = '<div class="col-span-2 text-center text-sm text-slate-500 py-8">Belum ada paket</div>';
     } else {
-      wrap.innerHTML = App.state.adminPackages.map(p => `
-        <button data-pkg="${esc(p.id)}" class="pkg-btn card-base text-left hover:border-brand-400 transition-all">
-          <div class="text-[10px] font-black uppercase tracking-widest text-brand-600 mb-1">${esc(p.name)}</div>
-          <div class="text-2xl font-black text-slate-800">${p.credits}</div>
-          <div class="text-[11px] text-slate-500 font-bold mb-2">kredit</div>
-          <div class="text-sm font-black text-emerald-600">${formatRupiah(p.price_idr)}</div>
+      wrap.innerHTML = App.state.adminPackages.map((p, i) => `
+        <button data-pkg="${esc(p.id)}" class="pkg-card" style="animation-delay:${i * 60}ms">
+          <div class="pkg-name">${esc(p.name)}</div>
+          <div class="pkg-credits">${p.credits}</div>
+          <div class="pkg-credits-label">kredit</div>
+          <div class="pkg-price">${formatRupiah(p.price_idr)}</div>
         </button>
       `).join('');
 
@@ -47,20 +47,23 @@
         approved: { label:'Disetujui', cls:'bg-emerald-50 text-emerald-700' },
         rejected: { label:'Ditolak', cls:'bg-red-50 text-red-700' },
       };
-      listEl.innerHTML = purchases.map(p => {
+      listEl.innerHTML = purchases.map((p, i) => {
+        const stMap = {
+          pending:  { label:'Menunggu',  cls:'pending' },
+          approved: { label:'Disetujui', cls:'success' },
+          rejected: { label:'Ditolak',   cls:'danger' },
+        };
         const st = stMap[p.status] || stMap.pending;
         return `
-          <div class="rounded-2xl bg-white border border-slate-100 p-3.5 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-700 grid place-items-center flex-shrink-0 font-black">
-              ${p.credits}
+          <div class="purchase-item" style="animation-delay:${i * 40}ms">
+            <div class="pi-badge">${p.credits}</div>
+            <div class="pi-body">
+              <div class="pi-name">${esc(p.package_name)}</div>
+              <div class="pi-date">${App.formatDateTime(p.created_at)}</div>
             </div>
-            <div class="flex-1 min-w-0">
-              <div class="font-bold text-xs">${esc(p.package_name)}</div>
-              <div class="text-[10px] text-slate-500">${App.formatDateTime(p.created_at)}</div>
-            </div>
-            <div class="text-right flex-shrink-0">
-              <div class="font-mono font-black text-xs text-slate-700">${formatRupiah(p.price_idr)}</div>
-              <span class="inline-block px-2 py-0.5 rounded-md ${st.cls} text-[9px] font-black uppercase">${st.label}</span>
+            <div class="pi-right">
+              <div class="pi-price">${formatRupiah(p.price_idr)}</div>
+              <span class="hi-status ${st.cls}" style="margin-top:4px">${st.label}</span>
             </div>
           </div>`;
       }).join('');
