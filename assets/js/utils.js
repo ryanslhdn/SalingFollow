@@ -4,19 +4,16 @@
 
 window.App = window.App || {};
 
-/* ---------- DOM ---------- */
 App.$ = (id) => document.getElementById(id);
 
 App.icon = () => {
   if (window.lucide) window.lucide.createIcons();
 };
 
-/* ---------- ESCAPE HTML ---------- */
 App.esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({
   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
 }[c]));
 
-/* ---------- TOAST ---------- */
 App.toast = (msg, type = 'info', ms = 3000) => {
   const c = App.$('toasts');
   if (!c) return;
@@ -32,7 +29,6 @@ App.toast = (msg, type = 'info', ms = 3000) => {
   }, ms);
 };
 
-/* ---------- STATUS MESSAGE ---------- */
 App.status = (id, type, msg) => {
   const el = App.$(id);
   if (!el) return;
@@ -46,7 +42,6 @@ App.clearStatus = (id) => {
   if (el) el.classList.add('hidden');
 };
 
-/* ---------- MODAL ---------- */
 App.openModal = (id) => {
   const el = App.$(id);
   if (el) el.classList.remove('hidden');
@@ -60,13 +55,11 @@ App.closeModal = (id) => {
   document.body.style.overflow = '';
 };
 
-/* Auto-bind: klik [data-close-modal] → close modal */
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-close-modal]');
   if (t) App.closeModal(t.dataset.closeModal);
 });
 
-/* ---------- FORMAT ---------- */
 App.formatDateTime = (iso) => {
   if (!iso) return '—';
   try {
@@ -83,7 +76,6 @@ App.formatRupiah = (n) => {
   return 'Rp ' + num.toLocaleString('id-ID');
 };
 
-/* ---------- PLATFORMS ---------- */
 App.PLATFORMS = {
   instagram: { name:'Instagram', icon:'camera',         color:'#E1306C', url:(u)=>`https://instagram.com/${u}` },
   tiktok:    { name:'TikTok',    icon:'music-2',        color:'#000000', url:(u)=>`https://tiktok.com/@${u}` },
@@ -92,7 +84,6 @@ App.PLATFORMS = {
   facebook:  { name:'Facebook',  icon:'thumbs-up',      color:'#1877F2', url:(u)=>`https://facebook.com/${u}` },
 };
 
-/* ---------- GLOBAL STATE ---------- */
 App.state = {
   user: null,
   profile: null,
