@@ -37,7 +37,7 @@
     if (!targets.length) {
       list.innerHTML = '';
       if (empty) empty.classList.remove('hidden');
-      loadRequests();
+      await loadRequests();
       icon();
       return;
     }
@@ -55,8 +55,6 @@
     });
 
     icon();
-
-    // Load riwayat request juga
     await loadRequests();
   }
 
@@ -71,7 +69,6 @@
     const filled = total - remaining;
     const percent = total > 0 ? Math.round((filled / total) * 100) : 0;
 
-    // Progress bar kalau ada request aktif
     const progressHtml = hasActive ? `
       <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">
         <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);font-weight:600;margin-bottom:6px">
@@ -154,8 +151,8 @@
     if (empty) empty.classList.add('hidden');
 
     const stMap = {
-      active:    { label: 'Aktif',     cls: 'background:#dbeafe;color:#1e40af' },
-      filled:    { label: 'Selesai',   cls: 'background:#ecfdf5;color:#047857' },
+      active:    { label: 'Aktif',      cls: 'background:#dbeafe;color:#1e40af' },
+      filled:    { label: 'Selesai',    cls: 'background:#ecfdf5;color:#047857' },
       cancelled: { label: 'Dibatalkan', cls: 'background:#fef2f2;color:#b91c1c' },
     };
 
@@ -175,7 +172,9 @@
               <div class="hi-date">${App.formatDateTime(r.created_at)}</div>
             </div>
             <div class="hi-right">
-              <span class="hi-status ${r.status === 'filled' ? 'success' : r.status === 'cancelled' ? 'danger' : 'pending'}" style="${st.cls};border:none">${st.label}</span>
+              <span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;${st.cls}">
+                ${st.label}
+              </span>
             </div>
           </div>
           <div>
@@ -231,7 +230,10 @@
     const u = $('targetUsername');
     const url = $('targetUrl');
     if (u) u.value = '';
-    if (url) { url.value = ''; delete url.dataset.manuallyEdited; }
+    if (url) {
+      url.value = '';
+      delete url.dataset.manuallyEdited;
+    }
     clearStatus('addTargetStatus');
     renderTargetPlatformGrid();
     openModal('modalAddTarget');
@@ -243,11 +245,18 @@
     const url = $('targetUrl').value.trim();
 
     if (!username) return status('addTargetStatus', 'error', 'Username wajib diisi');
-    if (!/^[a-zA-Z0-9._-]{2,}$/.test(username)) return status('addTargetStatus', 'error', 'Username tidak valid');
-    if (!/^https?:\/\//.test(url)) return status('addTargetStatus', 'error', 'Link harus diawali http:// atau https://');
+    if (!/^[a-zA-Z0-9._-]{2,}$/.test(username)) {
+      return status('addTargetStatus', 'error', 'Username tidak valid');
+    }
+    if (!/^https?:\/\//.test(url)) {
+      return status('addTargetStatus', 'error', 'Link harus diawali http:// atau https://');
+    }
 
     const btn = $('btnSaveTarget');
-    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+    }
     status('addTargetStatus', 'warn', 'Menyimpan...');
 
     try {
@@ -268,7 +277,10 @@
       console.error('[SaveTarget]', e);
       status('addTargetStatus', 'error', e.message || 'Gagal menyimpan');
     } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Simpan Akun Target'; }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Akun Target';
+      }
     }
   }
 
@@ -289,23 +301,20 @@
      REQUEST FOLLOWER
      ============================================================ */
   function openRequest(targetId) {
-    // Cari target di list
-    const card = document.querySelector(`[data-request-target="${targetId}"]`);
-    if (!card) return;
-
     state.currentRequestTarget = targetId;
 
-    // Ambil info target dari DOM (fallback)
-    const cardEl = card.closest('.account-card');
-    const usernameEl = cardEl?.querySelector('.acc-username');
+    // Cari username dari DOM
+    const btn = document.querySelector(`[data-request-target="${targetId}"]`);
+    const card = btn?.closest('.account-card');
+    const usernameEl = card?.querySelector('.acc-username');
     const username = usernameEl ? usernameEl.textContent : '@—';
 
     const nameEl = $('requestTargetName');
     if (nameEl) nameEl.textContent = username;
 
-    // Reset
     const qtyEl = $('requestQuantity');
     if (qtyEl) qtyEl.value = 10;
+
     clearStatus('requestStatus');
     updateRequestCost();
 
@@ -340,11 +349,14 @@
     }
 
     const btn = $('btnConfirmRequest');
-    if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Memproses...';
+    }
     status('requestStatus', 'warn', 'Membuat request...');
 
     try {
-      const { data, error } = await sb.rpc('create_follow_request', {
+      const { error } = await sb.rpc('create_follow_request', {
         p_target_id: targetId,
         p_quantity: qty,
       });
@@ -387,22 +399,31 @@
         urlInput.value = p.url(u);
       }
     });
+
     $('targetUrl')?.addEventListener('input', () => {
       const urlInput = $('targetUrl');
       if (urlInput) urlInput.dataset.manuallyEdited = '1';
     });
+
     $('targetUsername')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); $('targetUrl')?.focus(); }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        $('targetUrl')?.focus();
+      }
     });
+
     $('targetUrl')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); saveTarget(); }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveTarget();
+      }
     });
 
     // Request modal
     $('requestQuantity')?.addEventListener('input', updateRequestCost);
     $('btnConfirmRequest')?.addEventListener('click', submitRequest);
 
-    // Refresh tombol
+    // Refresh
     $('btnRefreshRequests')?.addEventListener('click', () => loadTargets());
   });
 
