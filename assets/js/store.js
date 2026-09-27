@@ -5,15 +5,10 @@
 (function() {
   const { $, esc, toast, icon, status, clearStatus, openModal, closeModal, state } = App;
 
-  // Fallback helpers (kalau App.formatRupiah / App.formatDateTime belum ada)
   const formatRupiah = App.formatRupiah || ((n) => 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID'));
   const formatDateTime = App.formatDateTime || ((iso) => iso ? new Date(iso).toLocaleString('id-ID') : '—');
 
-  /* ============================================================
-     LOAD STORE
-     ============================================================ */
   async function loadStore() {
-    // ---------- PACKAGES ----------
     const { data: pkgs, error: pkgErr } = await sb
       .from('credit_packages')
       .select('*')
@@ -47,7 +42,6 @@
       }
     }
 
-    // ---------- PAYMENT INFO ----------
     const { data: settings } = await sb.from('app_settings').select('*');
     const settingsMap = Object.fromEntries((settings || []).map(s => [s.key, s.value]));
     const infoEl = $('storePaymentInfo');
@@ -55,13 +49,11 @@
       infoEl.textContent = settingsMap.payment_info || 'Hubungi admin untuk info pembayaran.';
     }
 
-    // ---------- UPDATE KREDIT SAYA (kalau ada elemen) ----------
     const myCreditsEl = $('storeMyCredits');
     if (myCreditsEl) {
       myCreditsEl.textContent = (state.profile?.credits ?? 0) + ' kredit';
     }
 
-    // ---------- PURCHASE HISTORY ----------
     const listEl = $('myPurchases');
     if (listEl) {
       const { data: purchases } = await sb
@@ -107,9 +99,6 @@
     icon();
   }
 
-  /* ============================================================
-     OPEN PURCHASE MODAL
-     ============================================================ */
   function openPurchase(pkgId) {
     const pkg = state.adminPackages.find(p => p.id === pkgId);
     if (!pkg) return;
@@ -126,7 +115,6 @@
       `;
     }
 
-    // Reset form
     const method = $('purchaseMethod');
     const note = $('purchaseNote');
     if (method) method.value = 'BCA';
@@ -135,9 +123,6 @@
     openModal('modalPurchase');
   }
 
-  /* ============================================================
-     SUBMIT PURCHASE
-     ============================================================ */
   async function submitPurchase() {
     const method = $('purchaseMethod')?.value || 'BCA';
     const note = $('purchaseNote')?.value.trim() || null;
@@ -175,16 +160,10 @@
     }
   }
 
-  /* ============================================================
-     BINDING
-     ============================================================ */
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnConfirmPurchase')?.addEventListener('click', submitPurchase);
   });
 
-  /* ============================================================
-     EXPOSE
-     ============================================================ */
   App.loadStore = loadStore;
   App.openPurchase = openPurchase;
 
