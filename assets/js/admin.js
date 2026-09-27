@@ -1,11 +1,29 @@
 /* ============================================================
-   ADMIN — Panel admin
+   ADMIN — Panel admin (dengan hapus pembelian + cleanup)
    ============================================================ */
 
 (function() {
   const { $, esc, toast, icon, formatRupiah, formatDateTime } = App;
 
   const ADMIN_KEY = () => sessionStorage.getItem('sf_admin_key');
+
+  /* ============================================================
+     HELPER — hapus file dari storage berdasarkan URL publik
+     ============================================================ */
+  async function deleteProofFileFromStorage(proofUrl) {
+    if (!proofUrl) return;
+    try {
+      // URL format: .../storage/v1/object/public/payment-proofs/<path>
+      const match = proofUrl.match(/\/payment-proofs\/(.+)$/);
+      if (!match) return;
+      const path = decodeURIComponent(match[1]);
+
+      const { error } = await sb.storage.from('payment-proofs').remove([path]);
+      if (error) console.warn('[Storage delete]', error);
+    } catch (e) {
+      console.warn('[Storage delete exception]', e);
+    }
+  }
 
   /* ============================================================
      STATS
@@ -116,7 +134,7 @@
     icon();
   }
 
-  /* ---------- ADJUST CREDIT (custom confirm + prompt) ---------- */
+  /* ---------- ADJUST CREDIT ---------- */
   async function adminAdjustCredits(userId, sign) {
     const ok = await App.confirm({
       title: sign > 0 ? 'Tambah Kredit' : 'Kurangi Kredit',
@@ -216,6 +234,14 @@
       return;
     }
 
+    // Hitung jumlah per status untuk badge tombol bulk
+    const counts = {
+      pending:       data.filter(p => p.status === 'pending').length,
+      approved:      data.filter(p => p.status === 'approved').length,
+      rejected:      data.filter(p => p.status === 'rejected').length,
+      need_reupload: data.filter(p => p.status === 'need_reupload').length,
+    };
+
     const stMap = {
       pending:       { label: 'Pending',            style: 'background:#fffbeb;color:#b45309' },
       approved:      { label: 'Approved',           style: 'background:#ecfdf5;color:#047857' },
@@ -223,10 +249,24 @@
       need_reupload: { label: 'Minta Upload Ulang', style: 'background:#dbeafe;color:#1e40af' },
     };
 
-    wrap.innerHTML = data.map((p, i) => {
+    // Toolbar bulk delete
+    const toolbar = `
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;padding:12px;background:var(--surface-2);border-radius:10px">
+        <div style="flex:1;min-width:100%;font-size:11.5px;color:var(--ink-3);font-weight:600;margin-bottom:4px">
+          Hapus massal:
+        </div>
+        <button data-bulk="approved" style="flex:1;min-width:100px;padding:9px;border-radius:9px;background:#ecfdf5;color:#047857;font-weight:700;font-size:12px;border:1px solid #a7f3d0;font-family:inherit;cursor:pointer">
+          Hapus Approved (${counts.approved})
+        </button>
+        <button data-bulk="rejected" style="flex:1;min-width:100px;padding:9px;border-radius:9px;background:#fef2f2;color:#b91c1c;font-weight:700;font-size:12px;border:1px solid #fecaca;font-family:inherit;cursor:pointer">
+          Hapus Rejected (${counts.rejected})
+        </button>
+      </div>
+    `;
+
+    const cards = data.map((p, i) => {
       const st = stMap[p.status] || stMap.pending;
 
-      // Bukti transfer
       const proofHtml = p.proof_url ? `
         <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:6px">
@@ -244,7 +284,6 @@
         </div>
       `;
 
-      // Pesan admin (kalau need_reupload / rejected)
       const adminNoteHtml = p.admin_note ? `
         <div style="margin-top:12px;padding:12px 14px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe">
           <div style="font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1e40af;margin-bottom:4px">
@@ -259,18 +298,27 @@
       if (p.status === 'pending' || p.status === 'need_reupload') {
         actionsHtml = `
           <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
-            <button data-appr="${p.id}" style="flex:1;min-width:100px;padding:10px;border-radius:9px;background:var(--green-500);color:#fff;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;border:none">
-              <i data-lucide="check" style="width:14px;height:14px;display:inline;vertical-align:-2px;margin-right:4px"></i> Approve
+            <button data-appr="${p.id}" style="flex:1;min-width:80px;padding:10px;border-radius:9px;background:var(--green-500);color:#fff;font-weight:700;font-size:12.5px;font-family:inherit;cursor:pointer;border:none">
+              <i data-lucide="check" style="width:13px;height:13px;display:inline;vertical-align:-2px;margin-right:3px"></i> Approve
             </button>
-            <button data-reupload="${p.id}" style="flex:1;min-width:100px;padding:10px;border-radius:9px;background:#dbeafe;color:#1e40af;font-weight:700;font-size:13px;border:1px solid #bfdbfe;font-family:inherit;cursor:pointer">
-              <i data-lucide="upload" style="width:14px;height:14px;display:inline;vertical-align:-2px;margin-right:4px"></i> Minta Ulang
+            <button data-reupload="${p.id}" style="flex:1;min-width:80px;padding:10px;border-radius:9px;background:#dbeafe;color:#1e40af;font-weight:700;font-size:12.5px;border:1px solid #bfdbfe;font-family:inherit;cursor:pointer">
+              <i data-lucide="upload" style="width:13px;height:13px;display:inline;vertical-align:-2px;margin-right:3px"></i> Minta Ulang
             </button>
-            <button data-rej="${p.id}" style="flex:1;min-width:100px;padding:10px;border-radius:9px;background:var(--red-50);color:#b91c1c;font-weight:700;font-size:13px;border:1px solid #fecaca;font-family:inherit;cursor:pointer">
-              <i data-lucide="x" style="width:14px;height:14px;display:inline;vertical-align:-2px;margin-right:4px"></i> Tolak
+            <button data-rej="${p.id}" style="flex:1;min-width:70px;padding:10px;border-radius:9px;background:var(--red-50);color:#b91c1c;font-weight:700;font-size:12.5px;border:1px solid #fecaca;font-family:inherit;cursor:pointer">
+              <i data-lucide="x" style="width:13px;height:13px;display:inline;vertical-align:-2px;margin-right:3px"></i> Tolak
             </button>
           </div>
         `;
       }
+
+      // Tombol hapus selalu ada
+      actionsHtml += `
+        <div style="margin-top:8px">
+          <button data-del="${p.id}" style="width:100%;padding:9px;border-radius:9px;background:transparent;color:#b91c1c;font-weight:700;font-size:12px;border:1px dashed #fecaca;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+            <i data-lucide="trash-2" style="width:13px;height:13px"></i> Hapus Permanen
+          </button>
+        </div>
+      `;
 
       return `
         <div class="admin-card" style="padding:16px;margin-bottom:10px;animation:fadeUp .35s ease backwards;animation-delay:${i * 30}ms">
@@ -305,17 +353,24 @@
       `;
     }).join('');
 
+    wrap.innerHTML = toolbar + cards;
+
+    // Binding
     wrap.querySelectorAll('[data-appr]').forEach(b =>
       b.addEventListener('click', () => reviewPurchase(b.dataset.appr, true)));
     wrap.querySelectorAll('[data-rej]').forEach(b =>
       b.addEventListener('click', () => reviewPurchase(b.dataset.rej, false)));
     wrap.querySelectorAll('[data-reupload]').forEach(b =>
       b.addEventListener('click', () => requestReupload(b.dataset.reupload)));
+    wrap.querySelectorAll('[data-del]').forEach(b =>
+      b.addEventListener('click', () => deletePurchase(b.dataset.del)));
+    wrap.querySelectorAll('[data-bulk]').forEach(b =>
+      b.addEventListener('click', () => bulkDelete(b.dataset.bulk)));
 
     icon();
   }
 
-  /* ---------- REVIEW PURCHASE (approve/reject) ---------- */
+  /* ---------- REVIEW PURCHASE ---------- */
   async function reviewPurchase(pid, approve) {
     let note = null;
 
@@ -345,7 +400,7 @@
     await Promise.all([loadAdminPurchases(), loadAdminStats()]);
   }
 
-  /* ---------- REQUEST REUPLOAD (minta user upload ulang) ---------- */
+  /* ---------- REQUEST REUPLOAD ---------- */
   async function requestReupload(pid) {
     const msg = await App.prompt({
       title: 'Minta Bukti Ulang',
@@ -367,6 +422,75 @@
 
     toast('Permintaan terkirim ke user', 'success');
     await Promise.all([loadAdminPurchases(), loadAdminStats()]);
+  }
+
+  /* ---------- DELETE SINGLE PURCHASE ---------- */
+  async function deletePurchase(pid) {
+    const ok = await App.confirm({
+      title: 'Hapus Pembelian Ini?',
+      desc: 'Data pembelian dan file bukti transfer akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.',
+      okText: 'Ya, Hapus',
+      cancelText: 'Batal',
+      danger: true,
+      icon: 'trash-2'
+    });
+    if (!ok) return;
+
+    try {
+      const { data, error } = await sb.rpc('admin_delete_purchase', {
+        p_key: ADMIN_KEY(),
+        p_purchase_id: pid,
+      });
+      if (error) throw error;
+
+      // Hapus file bukti dari storage (kalau ada)
+      if (data?.proof_url) {
+        await deleteProofFileFromStorage(data.proof_url);
+      }
+
+      toast('Pembelian dihapus', 'success');
+      await Promise.all([loadAdminPurchases(), loadAdminStats()]);
+    } catch (e) {
+      console.error('[Delete purchase]', e);
+      toast(e.message || 'Gagal menghapus', 'error');
+    }
+  }
+
+  /* ---------- BULK DELETE ---------- */
+  async function bulkDelete(status) {
+    const label = status === 'approved' ? 'Approved' : 'Rejected';
+    const ok = await App.confirm({
+      title: `Hapus Semua ${label}?`,
+      desc: `Semua pembelian dengan status "${label}" akan dihapus permanen beserta file bukti transfernya.`,
+      okText: 'Ya, Hapus Semua',
+      cancelText: 'Batal',
+      danger: true,
+      icon: 'trash-2'
+    });
+    if (!ok) return;
+
+    try {
+      const { data, error } = await sb.rpc('admin_clear_purchases', {
+        p_key: ADMIN_KEY(),
+        p_status: status,
+      });
+      if (error) throw error;
+
+      // Hapus semua file dari storage
+      const urls = data?.urls || [];
+      if (urls.length > 0) {
+        toast(`Menghapus ${urls.length} file bukti...`, 'info', 2000);
+        for (const url of urls) {
+          await deleteProofFileFromStorage(url);
+        }
+      }
+
+      toast(`${data?.deleted || 0} pembelian ${label} dihapus`, 'success');
+      await Promise.all([loadAdminPurchases(), loadAdminStats()]);
+    } catch (e) {
+      console.error('[Bulk delete]', e);
+      toast(e.message || 'Gagal menghapus', 'error');
+    }
   }
 
   /* ============================================================
