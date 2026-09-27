@@ -3,8 +3,15 @@
    ============================================================ */
 
 (function() {
-  const { $, esc, toast, icon, status, clearStatus, openModal, closeModal, formatRupiah, state } = App;
+  const { $, esc, toast, icon, status, clearStatus, openModal, closeModal, state } = App;
 
+  // Fallback helpers (kalau App.formatRupiah / App.formatDateTime belum ada)
+  const formatRupiah = App.formatRupiah || ((n) => 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID'));
+  const formatDateTime = App.formatDateTime || ((iso) => iso ? new Date(iso).toLocaleString('id-ID') : '—');
+
+  /* ============================================================
+     LOAD STORE
+     ============================================================ */
   async function loadStore() {
     // ---------- PACKAGES ----------
     const { data: pkgs, error: pkgErr } = await sb
@@ -48,6 +55,12 @@
       infoEl.textContent = settingsMap.payment_info || 'Hubungi admin untuk info pembayaran.';
     }
 
+    // ---------- UPDATE KREDIT SAYA (kalau ada elemen) ----------
+    const myCreditsEl = $('storeMyCredits');
+    if (myCreditsEl) {
+      myCreditsEl.textContent = (state.profile?.credits ?? 0) + ' kredit';
+    }
+
     // ---------- PURCHASE HISTORY ----------
     const listEl = $('myPurchases');
     if (listEl) {
@@ -80,7 +93,7 @@
               <div class="pi-badge">${p.credits}</div>
               <div class="pi-body">
                 <div class="pi-name">${esc(p.package_name)}</div>
-                <div class="pi-date">${App.formatDateTime(p.created_at)}</div>
+                <div class="pi-date">${formatDateTime(p.created_at)}</div>
               </div>
               <div class="pi-right">
                 <div class="pi-price">${formatRupiah(p.price_idr)}</div>
@@ -94,7 +107,9 @@
     icon();
   }
 
-  /* ---------- OPEN PURCHASE MODAL ---------- */
+  /* ============================================================
+     OPEN PURCHASE MODAL
+     ============================================================ */
   function openPurchase(pkgId) {
     const pkg = state.adminPackages.find(p => p.id === pkgId);
     if (!pkg) return;
@@ -111,20 +126,30 @@
       `;
     }
 
+    // Reset form
+    const method = $('purchaseMethod');
+    const note = $('purchaseNote');
+    if (method) method.value = 'BCA';
+    if (note) note.value = '';
+
     openModal('modalPurchase');
   }
 
-  /* ---------- SUBMIT PURCHASE ---------- */
+  /* ============================================================
+     SUBMIT PURCHASE
+     ============================================================ */
   async function submitPurchase() {
-    const method = $('purchaseMethod').value;
-    const note = $('purchaseNote').value.trim() || null;
+    const method = $('purchaseMethod')?.value || 'BCA';
+    const note = $('purchaseNote')?.value.trim() || null;
     const pkg = state.currentPackage;
 
     if (!pkg) return;
 
     const btn = $('btnConfirmPurchase');
-    btn.disabled = true;
-    btn.textContent = 'Mengirim...';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Mengirim...';
+    }
     status('purchaseStatus', 'warn', 'Mengirim...');
 
     try {
@@ -137,20 +162,30 @@
 
       toast('Konfirmasi terkirim! Nunggu approve admin ✅', 'success', 4000);
       closeModal('modalPurchase');
+
       await loadStore();
     } catch (e) {
-      console.error(e);
+      console.error('[Purchase]', e);
       status('purchaseStatus', 'error', e.message || 'Gagal mengirim');
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Kirim Konfirmasi';
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Kirim Konfirmasi';
+      }
     }
   }
 
-  /* ---------- BINDING ---------- */
+  /* ============================================================
+     BINDING
+     ============================================================ */
   document.addEventListener('DOMContentLoaded', () => {
-    $('btnConfirmPurchase')?.addEventListener('click', submitPurchase);
+    document.getElementById('btnConfirmPurchase')?.addEventListener('click', submitPurchase);
   });
 
+  /* ============================================================
+     EXPOSE
+     ============================================================ */
   App.loadStore = loadStore;
+  App.openPurchase = openPurchase;
+
 })();
