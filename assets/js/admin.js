@@ -55,11 +55,7 @@
     const { data, error } = await sb.rpc('admin_list_users', { p_key: ADMIN_KEY() });
 
     if (error) {
-      wrap.innerHTML = `
-        <div class="info-box danger">
-          <i data-lucide="alert-circle"></i>
-          <span>${esc(error.message)}</span>
-        </div>`;
+      wrap.innerHTML = `<div class="info-box danger"><i data-lucide="alert-circle"></i><span>${esc(error.message)}</span></div>`;
       icon();
       return;
     }
@@ -83,80 +79,76 @@
     }
 
     if (!rows.length) {
-      if (q) {
-        wrap.innerHTML = `
-          <div class="empty-state" style="padding:32px 24px">
-            <div class="empty-icon" style="width:56px;height:56px">
-              <i data-lucide="search-x" style="width:24px;height:24px"></i>
-            </div>
-            <h3 class="empty-title" style="font-size:14px">Tidak ditemukan</h3>
-            <p class="empty-desc">Tidak ada user yang cocok dengan "${esc(state.adminUserQuery)}"</p>
-          </div>`;
-      } else {
-        wrap.innerHTML = `
-          <div class="empty-state" style="padding:32px 24px">
-            <div class="empty-icon" style="width:56px;height:56px">
-              <i data-lucide="users" style="width:24px;height:24px"></i>
-            </div>
-            <p class="empty-desc">Belum ada user</p>
-          </div>`;
-      }
+      wrap.innerHTML = `
+        <div class="empty-state" style="padding:32px 24px">
+          <div class="empty-icon" style="width:56px;height:56px">
+            <i data-lucide="search-x" style="width:24px;height:24px"></i>
+          </div>
+          <p class="empty-desc">${q ? 'Tidak ditemukan' : 'Belum ada user'}</p>
+        </div>`;
       icon();
       return;
     }
 
-    wrap.innerHTML = rows.map((u, i) => `
-      <div class="admin-card" style="padding:16px;margin-bottom:10px;animation:fadeUp .35s ease backwards;animation-delay:${i * 30}ms">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-          <div style="width:44px;height:44px;border-radius:12px;background:${u.is_banned ? '#ef4444' : '#10b981'};color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px;flex-shrink:0">
-            ${esc((u.display_name || u.username || '?')[0].toUpperCase())}
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-              ${esc(u.display_name || u.username)}
-            </div>
-            <div style="font-size:12px;color:var(--ink-3);font-family:ui-monospace,monospace;margin-top:2px">
-              @${esc(u.username)}
-            </div>
-            ${u.is_banned ? `
-              <div style="display:inline-block;margin-top:6px;padding:3px 8px;border-radius:6px;background:#fef2f2;color:#b91c1c;font-size:10px;font-weight:700;letter-spacing:.04em">
-                BANNED
-              </div>` : ''}
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:11px;color:var(--ink-3);font-weight:600">Kredit</div>
-            <div style="font-size:20px;font-weight:800;color:var(--green-600);letter-spacing:-.02em">${u.credits}</div>
-          </div>
-        </div>
+    wrap.innerHTML = rows.map((u, i) => {
+      const rejectRate = Number(u.reject_rate) || 0;
+      const rejectPercent = Math.round(rejectRate * 100);
+      const isRisky = rejectRate >= 0.5 && (u.claims_rejected || 0) >= 5;
+      const isBanned = u.is_banned;
 
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
-          <div style="background:var(--surface-2);border-radius:8px;padding:10px;text-align:center">
-            <div style="font-size:10px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase">Given</div>
-            <div style="font-weight:700;font-size:14px;color:var(--ink);margin-top:2px">${u.total_follows_given}</div>
+      return `
+        <div class="admin-card" style="padding:16px;margin-bottom:10px;animation:fadeUp .35s ease backwards;animation-delay:${i * 30}ms;${isRisky ? 'border-color:#fecaca' : ''}">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <div style="width:44px;height:44px;border-radius:12px;background:${isBanned ? '#ef4444' : isRisky ? '#f59e0b' : '#10b981'};color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px;flex-shrink:0">
+              ${esc((u.display_name || u.username || '?')[0].toUpperCase())}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                ${esc(u.display_name || u.username)}
+              </div>
+              <div style="font-size:12px;color:var(--ink-3);font-family:ui-monospace,monospace;margin-top:2px">
+                @${esc(u.username)}
+              </div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">
+                ${isBanned ? `<span style="padding:3px 8px;border-radius:6px;background:#fef2f2;color:#b91c1c;font-size:10px;font-weight:700">BANNED</span>` : ''}
+                ${isRisky && !isBanned ? `<span style="padding:3px 8px;border-radius:6px;background:#fef3c7;color:#b45309;font-size:10px;font-weight:700">⚠ REJECT ${rejectPercent}%</span>` : ''}
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:11px;color:var(--ink-3);font-weight:600">Kredit</div>
+              <div style="font-size:20px;font-weight:800;color:var(--green-600);letter-spacing:-.02em">${u.credits}</div>
+            </div>
           </div>
-          <div style="background:var(--surface-2);border-radius:8px;padding:10px;text-align:center">
-            <div style="font-size:10px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase">Received</div>
-            <div style="font-weight:700;font-size:14px;color:var(--ink);margin-top:2px">${u.total_follows_received}</div>
-          </div>
-          <div style="background:var(--surface-2);border-radius:8px;padding:10px;text-align:center">
-            <div style="font-size:10px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase">Akun</div>
-            <div style="font-weight:700;font-size:14px;color:var(--ink);margin-top:2px">${u.accounts_count}</div>
-          </div>
-        </div>
 
-        <div style="display:flex;gap:6px">
-          <button data-add="${esc(u.id)}" style="flex:1;padding:9px;border-radius:9px;background:var(--green-50);color:var(--green-700);font-weight:700;font-size:12px;border:1px solid var(--green-100);font-family:inherit;cursor:pointer">
-            + Kredit
-          </button>
-          <button data-rem="${esc(u.id)}" style="flex:1;padding:9px;border-radius:9px;background:var(--red-50);color:#b91c1c;font-weight:700;font-size:12px;border:1px solid #fecaca;font-family:inherit;cursor:pointer">
-            − Kredit
-          </button>
-          <button data-ban="${esc(u.id)}" data-banned="${u.is_banned}" style="padding:9px 14px;border-radius:9px;background:${u.is_banned ? 'var(--green-50)' : 'var(--red-50)'};color:${u.is_banned ? 'var(--green-700)' : '#b91c1c'};font-weight:700;font-size:12px;border:1px solid ${u.is_banned ? 'var(--green-100)' : '#fecaca'};font-family:inherit;cursor:pointer">
-            ${u.is_banned ? 'Unban' : 'Ban'}
-          </button>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+            <div style="background:var(--surface-2);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:9.5px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase">Given</div>
+              <div style="font-weight:700;font-size:13px;color:var(--ink);margin-top:2px">${u.total_follows_given}</div>
+            </div>
+            <div style="background:var(--surface-2);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:9.5px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase">Received</div>
+              <div style="font-weight:700;font-size:13px;color:var(--ink);margin-top:2px">${u.total_follows_received}</div>
+            </div>
+            <div style="background:var(--surface-2);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:9.5px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase">Approved</div>
+              <div style="font-weight:700;font-size:13px;color:var(--green-600);margin-top:2px">${u.claims_approved || 0}</div>
+            </div>
+            <div style="background:var(--surface-2);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:9.5px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase">Rejected</div>
+              <div style="font-weight:700;font-size:13px;color:${(u.claims_rejected || 0) > 0 ? '#b91c1c' : 'var(--ink)'};margin-top:2px">${u.claims_rejected || 0}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:6px">
+            <button data-add="${esc(u.id)}" style="flex:1;padding:9px;border-radius:9px;background:var(--green-50);color:var(--green-700);font-weight:700;font-size:12px;border:1px solid var(--green-100);font-family:inherit;cursor:pointer">+ Kredit</button>
+            <button data-rem="${esc(u.id)}" style="flex:1;padding:9px;border-radius:9px;background:var(--red-50);color:#b91c1c;font-weight:700;font-size:12px;border:1px solid #fecaca;font-family:inherit;cursor:pointer">− Kredit</button>
+            <button data-ban="${esc(u.id)}" data-banned="${u.is_banned}" style="padding:9px 14px;border-radius:9px;background:${u.is_banned ? 'var(--green-50)' : 'var(--red-50)'};color:${u.is_banned ? 'var(--green-700)' : '#b91c1c'};font-weight:700;font-size:12px;border:1px solid ${u.is_banned ? 'var(--green-100)' : '#fecaca'};font-family:inherit;cursor:pointer">
+              ${u.is_banned ? 'Unban' : 'Ban'}
+            </button>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     wrap.querySelectorAll('[data-add]').forEach(b =>
       b.addEventListener('click', () => adminAdjustCredits(b.dataset.add, +1)));
