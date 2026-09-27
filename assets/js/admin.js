@@ -1,5 +1,5 @@
 /* ============================================================
-   ADMIN — Panel admin (dengan search & filter)
+   ADMIN — Panel admin (dengan search, filter, hapus)
    ============================================================ */
 
 (function() {
@@ -7,12 +7,11 @@
 
   const ADMIN_KEY = () => sessionStorage.getItem('sf_admin_key');
 
-  // State
-  state.adminUsersCache = [];
-  state.adminPurchasesCache = [];
-  state.adminUserQuery = '';
-  state.adminPurchaseQuery = '';
-  state.adminPurchaseStatus = '';
+  state.adminUsersCache = state.adminUsersCache || [];
+  state.adminPurchasesCache = state.adminPurchasesCache || [];
+  state.adminUserQuery = state.adminUserQuery || '';
+  state.adminPurchaseQuery = state.adminPurchaseQuery || '';
+  state.adminPurchaseStatus = state.adminPurchaseStatus || '';
 
   /* ============================================================
      HELPER — hapus file dari storage
@@ -245,11 +244,7 @@
     const { data, error } = await sb.rpc('admin_list_purchases', { p_key: ADMIN_KEY() });
 
     if (error) {
-      wrap.innerHTML = `
-        <div class="info-box danger">
-          <i data-lucide="alert-circle"></i>
-          <span>${esc(error.message)}</span>
-        </div>`;
+      wrap.innerHTML = `<div class="info-box danger"><i data-lucide="alert-circle"></i><span>${esc(error.message)}</span></div>`;
       icon();
       return;
     }
@@ -266,10 +261,8 @@
     const q = state.adminPurchaseQuery.trim().toLowerCase();
     const st = state.adminPurchaseStatus;
 
-    // Filter status
     if (st) rows = rows.filter(p => p.status === st);
 
-    // Filter search
     if (q) {
       rows = rows.filter(p =>
         (p.display_name || '').toLowerCase().includes(q) ||
@@ -279,7 +272,6 @@
       );
     }
 
-    // Hitung counts dari SEMUA data (bukan filtered) — untuk badge tombol filter
     const counts = {
       all:           state.adminPurchasesCache.length,
       pending:       state.adminPurchasesCache.filter(p => p.status === 'pending').length,
@@ -288,7 +280,6 @@
       need_reupload: state.adminPurchasesCache.filter(p => p.status === 'need_reupload').length,
     };
 
-    // Update label tombol filter
     const filterWrap = $('adminPurchaseFilter');
     if (filterWrap) {
       filterWrap.querySelectorAll('[data-status]').forEach(b => {
@@ -331,7 +322,6 @@
       need_reupload: { label: 'Minta Upload Ulang', style: 'background:#dbeafe;color:#1e40af' },
     };
 
-    // Toolbar bulk delete (hanya kalau approved/rejected ada)
     let toolbar = '';
     if (counts.approved > 0 || counts.rejected > 0) {
       toolbar = `
@@ -635,6 +625,7 @@
 
     if (tab === 'users')     loadAdminUsers();
     if (tab === 'purchases') loadAdminPurchases();
+    if (tab === 'store')     window.AdminStore && window.AdminStore.load();
     if (tab === 'settings')  loadAdminSettings();
 
     icon();
@@ -644,7 +635,6 @@
      BINDING — search & filter
      ============================================================ */
   function bindSearchAndFilter() {
-    // User search — real-time filter
     const userSearch = $('adminUserSearch');
     if (userSearch) {
       userSearch.addEventListener('input', (e) => {
@@ -653,7 +643,6 @@
       });
     }
 
-    // Purchase search
     const purchaseSearch = $('adminPurchaseSearch');
     if (purchaseSearch) {
       purchaseSearch.addEventListener('input', (e) => {
@@ -662,7 +651,6 @@
       });
     }
 
-    // Purchase status filter
     const filterWrap = $('adminPurchaseFilter');
     if (filterWrap) {
       filterWrap.querySelectorAll('[data-status]').forEach(b => {
@@ -697,7 +685,6 @@
       location.reload();
     });
 
-    // Bind search & filter
     bindSearchAndFilter();
   });
 
