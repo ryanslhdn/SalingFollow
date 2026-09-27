@@ -1,5 +1,6 @@
 /* ============================================================
    ACCOUNTS — Akun user untuk follow orang lain
+   (Tanpa tombol Boost — boost hanya untuk akun target)
    ============================================================ */
 
 (function() {
@@ -40,29 +41,22 @@
       b.addEventListener('click', () => deleteAccount(b.dataset.deleteAcc));
     });
 
-    list.querySelectorAll('[data-boost-acc]').forEach(b => {
-      b.addEventListener('click', () => App.openBoost?.(b.dataset.boostAcc));
-    });
-
     icon();
   }
 
+  /* ---------- CARD — hanya tombol Buka (tanpa Boost) ---------- */
   function renderCard(a, index) {
     const p = PLATFORMS[a.platform] || { name: a.platform, icon: 'globe', color: '#64748b' };
-    const boosted = a.boost_until && new Date(a.boost_until) > new Date();
-    const boostLabel = boosted
-      ? `Aktif sampai ${App.formatDateTime(a.boost_until)}`
-      : 'Belum di-boost';
 
     return `
-      <div class="account-card ${boosted ? 'boosted' : ''}" style="animation-delay:${index * 40}ms">
+      <div class="account-card" style="animation-delay:${index * 40}ms">
         <div class="acc-head">
-          <div class="acc-avatar ${boosted ? 'boosted' : ''}" style="background:${p.color}">
+          <div class="acc-avatar" style="background:${p.color}">
             <i data-lucide="${p.icon}"></i>
           </div>
           <div class="acc-info">
             <div class="acc-username">@${esc(a.username)}</div>
-            <div class="acc-boost-label ${boosted ? 'active' : ''}">${p.name}${boosted ? ' • ' + boostLabel : ''}</div>
+            <div class="acc-boost-label">${p.name}</div>
           </div>
           <button data-delete-acc="${esc(a.id)}" class="acc-del" title="Hapus akun">
             <i data-lucide="trash-2"></i>
@@ -70,11 +64,8 @@
         </div>
         <div class="acc-actions">
           <a href="${esc(a.profile_url)}" target="_blank" rel="noopener" class="acc-btn ghost">
-            <i data-lucide="external-link"></i> Buka
+            <i data-lucide="external-link"></i> Buka Profil
           </a>
-          <button data-boost-acc="${esc(a.id)}" class="acc-btn boost">
-            <i data-lucide="rocket"></i> Boost
-          </button>
         </div>
       </div>`;
   }
