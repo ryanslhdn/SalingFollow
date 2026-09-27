@@ -259,6 +259,19 @@
     if (!/^https?:\/\//.test(url)) return status('addTargetStatus', 'error', 'Link harus http:// atau https://');
     if (qty < 0 || qty > 1000) return status('addTargetStatus', 'error', 'Jumlah follower 0-1000');
 
+    // ⭐ CEK DUPLIKAT — tidak boleh ada 2 akun target dengan username+platform sama
+    const { data: isDup, error: dupErr } = await sb.rpc('check_target_duplicate', {
+      p_platform: state.selectedTargetPlatform,
+      p_username: username,
+      p_exclude_id: null,
+    });
+
+    if (dupErr) return status('addTargetStatus', 'error', dupErr.message);
+    if (isDup) {
+      return status('addTargetStatus', 'error',
+        `Akun target @${username} di ${PLATFORMS[state.selectedTargetPlatform].name} sudah ada. Hapus yang lama atau edit yang ada.`);
+    }
+
     const credits = state.profile?.credits ?? 0;
     const canRequest = qty > 0 && credits >= qty;
 
