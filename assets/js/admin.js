@@ -144,6 +144,9 @@
             <button data-ban="${esc(u.id)}" data-banned="${u.is_banned}" style="padding:9px 14px;border-radius:9px;background:${u.is_banned ? 'var(--green-50)' : 'var(--red-50)'};color:${u.is_banned ? 'var(--green-700)' : '#b91c1c'};font-weight:700;font-size:12px;border:1px solid ${u.is_banned ? 'var(--green-100)' : '#fecaca'};font-family:inherit;cursor:pointer">
               ${u.is_banned ? 'Unban' : 'Ban'}
             </button>
+            <button data-delete="${esc(u.id)}" title="Hapus permanen" style="padding:9px 12px;border-radius:9px;background:transparent;color:#dc2626;font-weight:700;font-size:12px;border:1px dashed #fecaca;font-family:inherit;cursor:pointer;display:grid;place-items:center">
+              <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+            </button>
           </div>
         </div>
       `;
@@ -155,6 +158,11 @@
       b.addEventListener('click', () => adminAdjustCredits(b.dataset.rem, -1)));
     wrap.querySelectorAll('[data-ban]').forEach(b =>
       b.addEventListener('click', () => adminToggleBan(b.dataset.ban, b.dataset.banned === 'true')));
+    wrap.querySelectorAll('[data-delete]').forEach(b =>
+      b.addEventListener('click', () => adminDeleteUser(b.dataset.delete)));
+
+    icon();
+  }
 
     icon();
   }
@@ -230,6 +238,88 @@
 
     toast(currentlyBanned ? 'User di-unban' : 'User di-ban', 'success');
     await Promise.all([loadAdminUsers(), loadAdminStats()]);
+  }
+
+  /* ---------- DELETE USER PERMANEN ---------- */
+  async function adminDeleteUser(userId) {
+    const user = state.adminUsersCache.find(u => u.id === userId);
+    if (!user) return;
+
+    const uname = `@${user.username}`;
+    const isBanned = user.is_banned;
+
+    // Konfirmasi 1
+    const ok1 = await App.confirm({
+      title: 'Hapus User Permanen?',
+      desc: `Akun ${uname} (${user.display_name || 'tanpa nama'}) akan dihapus SELAMANYA beserta semua data: profil, akun sosmed, klaim, request, bukti transfer, dan riwayat kredit.\n\nTindakan ini TIDAK BISA dibatalkan.`,
+      okText: 'Lanjut',
+      cancelText: 'Batal',
+      danger: true,
+      icon: 'trash-2'
+    });
+    if (!ok1) return;
+
+    // Konfirmasi 2 — kalau user TIDAK banned, warning lebih tegas
+    if (!isBanned) {
+      const ok2 = await App.confirm({
+        title: `⚠ User ${uname} belum di-ban`,
+        desc: 'User ini masih aktif dan mungkin punya data berharga. Yakin mau hapus permanen? Saran: ban dulu, biar user tahu alasannya.',
+        okText: 'Ya, Tetap Hapus',
+        cancelText: 'Batal',
+        danger: true,
+        icon: 'alert-triangle'
+      });
+      if (!ok2) return;
+    }
+
+    // Konfirmasi 3 — ketik ulang username
+    const typed = await App.prompt({
+      title: 'Konfirmasi Terakhir',
+      desc: `Ketik username "${user.username}" (tanpa @) untuk konfirmasi hapus permanen`,
+      placeholder: user.username,
+      type: 'text',
+      okText: 'Hapus Sekarang',
+      icon: 'trash-2'
+    });
+    if (typed === null) return;
+    if (typed.trim().toLowerCase() !== user.username.toLowerCase()) {
+      return toast('Username tidak cocok. Hapus dibatalkan.', 'error');
+    }
+
+    toast('Menghapus data...', 'info', 2000);
+
+    // 1. Hapus file-file di storage
+    try {
+      for (const bucket of ['payment-proofs', 'follow-proofs', 'product-photos']) {
+        try {
+          const { data: files } = await sb.storage.from(bucket).list(userId);
+          if (files && files.length > 0) {
+            const paths = files.map(f => `${userId}/${f.name}`);
+            await sb.storage.from(bucket).remove(paths);
+            console.log(`[Delete] ${bucket}: ${paths.length} file dihapus`);
+          }
+        } catch (e) {
+          console.warn(`[Delete storage ${bucket}]`, e);
+        }
+      }
+    } catch (e) {
+      console.warn('[Delete user storage]', e);
+    }
+
+    // 2. Hapus dari auth.users → cascade semua tabel
+    try {
+      const { data, error } = await sb.rpc('admin_delete_user', {
+        p_key: ADMIN_KEY(),
+        p_user_id: userId,
+      });
+      if (error) throw error;
+
+      toast(`${uname} berhasil dihapus permanen ✅`, 'success', 4000);
+      await Promise.all([loadAdminUsers(), loadAdminStats()]);
+    } catch (e) {
+      console.error('[Delete user]', e);
+      toast('Gagal hapus: ' + (e.message || 'Unknown'), 'error', 5000);
+    }
   }
 
   /* ============================================================
