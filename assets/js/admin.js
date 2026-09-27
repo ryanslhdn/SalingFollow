@@ -7,7 +7,9 @@
 
   const ADMIN_KEY = () => sessionStorage.getItem('sf_admin_key');
 
-  /* ---------- STATS ---------- */
+  /* ============================================================
+     STATS
+     ============================================================ */
   async function loadAdminStats() {
     const { data, error } = await sb.rpc('admin_stats', { p_key: ADMIN_KEY() });
     if (error) return console.error('[AdminStats]', error);
@@ -18,7 +20,9 @@
     $('adminPendingPurchases').textContent = data.pending_purchases;
   }
 
-  /* ---------- USERS ---------- */
+  /* ============================================================
+     USERS
+     ============================================================ */
   async function loadAdminUsers() {
     const wrap = $('adminUsersList');
     if (!wrap) return;
@@ -146,7 +150,9 @@
     await Promise.all([loadAdminUsers(), loadAdminStats()]);
   }
 
-  /* ---------- PURCHASES ---------- */
+  /* ============================================================
+     PURCHASES
+     ============================================================ */
   async function loadAdminPurchases() {
     const wrap = $('adminPurchasesList');
     if (!wrap) return;
@@ -185,6 +191,25 @@
 
     wrap.innerHTML = data.map((p, i) => {
       const st = stMap[p.status] || stMap.pending;
+
+      // Bukti transfer
+      const proofHtml = p.proof_url ? `
+        <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:6px">
+            Bukti Transfer
+          </div>
+          <img src="${esc(p.proof_url)}"
+               style="width:100%;max-height:280px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer"
+               onclick="window.open('${esc(p.proof_url)}','_blank')"
+               alt="Bukti Transfer">
+        </div>
+      ` : `
+        <div class="info-box warn" style="margin-top:10px;font-size:11.5px">
+          <i data-lucide="alert-circle"></i>
+          <span>Bukti transfer tidak diupload</span>
+        </div>
+      `;
+
       return `
         <div class="admin-card" style="padding:16px;margin-bottom:10px;animation:fadeUp .35s ease backwards;animation-delay:${i * 30}ms">
           <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
@@ -204,15 +229,17 @@
             </span>
           </div>
 
-          <div style="background:var(--surface-2);border-radius:10px;padding:12px;font-size:12.5px;color:var(--ink-2);line-height:1.7;margin-bottom:12px">
+          <div style="background:var(--surface-2);border-radius:10px;padding:12px;font-size:12.5px;color:var(--ink-2);line-height:1.7">
             <div><b style="color:var(--ink)">Paket:</b> ${esc(p.package_name)} (${p.credits} kredit)</div>
             <div><b style="color:var(--ink)">Harga:</b> ${formatRupiah(p.price_idr)}</div>
             <div><b style="color:var(--ink)">Metode:</b> ${esc(p.payment_method || '-')}</div>
             ${p.buyer_note ? `<div><b style="color:var(--ink)">Catatan:</b> ${esc(p.buyer_note)}</div>` : ''}
           </div>
 
+          ${proofHtml}
+
           ${p.status === 'pending' ? `
-            <div style="display:flex;gap:6px">
+            <div style="display:flex;gap:6px;margin-top:12px">
               <button data-appr="${p.id}" style="flex:1;padding:10px;border-radius:9px;background:var(--green-500);color:#fff;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;border:none">
                 Approve
               </button>
@@ -252,7 +279,9 @@
     await Promise.all([loadAdminPurchases(), loadAdminStats()]);
   }
 
-  /* ---------- SETTINGS ---------- */
+  /* ============================================================
+     SETTINGS
+     ============================================================ */
   async function loadAdminSettings() {
     const { data } = await sb.from('app_settings').select('*');
     const map = Object.fromEntries((data || []).map(s => [s.key, s.value]));
@@ -279,9 +308,9 @@
       const k = $('adminSetAdminKey').value;
 
       const calls = [
-        sb.rpc('admin_update_setting', { p_key: ADMIN_KEY(), p_setting_key: 'payment_info',   p_value: p }),
+        sb.rpc('admin_update_setting', { p_key: ADMIN_KEY(), p_setting_key: 'payment_info',    p_value: p }),
         sb.rpc('admin_update_setting', { p_key: ADMIN_KEY(), p_setting_key: 'welcome_credits', p_value: w }),
-        sb.rpc('admin_update_setting', { p_key: ADMIN_KEY(), p_setting_key: 'admin_key',      p_value: k }),
+        sb.rpc('admin_update_setting', { p_key: ADMIN_KEY(), p_setting_key: 'admin_key',       p_value: k }),
       ];
 
       const results = await Promise.all(calls);
@@ -301,23 +330,28 @@
     }
   }
 
-  /* ---------- TAB SWITCHING ---------- */
+  /* ============================================================
+     TAB SWITCHING
+     ============================================================ */
   function switchAdminTab(tab) {
     document.querySelectorAll('.admin-tab-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.adminTab === tab);
     });
+
     document.querySelectorAll('.admin-tab-content').forEach(c => {
       c.classList.toggle('hidden', c.id !== 'adminTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
     });
 
-    if (tab === 'users') loadAdminUsers();
+    if (tab === 'users')     loadAdminUsers();
     if (tab === 'purchases') loadAdminPurchases();
-    if (tab === 'settings') loadAdminSettings();
+    if (tab === 'settings')  loadAdminSettings();
 
     icon();
   }
 
-  /* ---------- BINDING ---------- */
+  /* ============================================================
+     BINDING
+     ============================================================ */
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.admin-tab-btn').forEach(b => {
       b.addEventListener('click', () => switchAdminTab(b.dataset.adminTab));
@@ -334,12 +368,14 @@
     });
   });
 
-  /* ---------- INIT ---------- */
+  /* ============================================================
+     INIT
+     ============================================================ */
   App.initAdmin = async function() {
     await loadAdminStats();
     await loadAdminUsers();
-    // Set default tab active
     switchAdminTab('users');
     icon();
   };
+
 })();
