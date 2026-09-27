@@ -3,26 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#7c3aed">
+<meta name="theme-color" content="#10b981">
 <title>SalingFollow — Naik Followers Bareng</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
   theme: {
     extend: {
-      fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
-      colors: {
-        brand: {
-          50:'#f5f3ff',100:'#ede9fe',200:'#ddd6fe',300:'#c4b5fd',
-          400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed',700:'#6d28d9',
-          800:'#5b21b6',900:'#4c1d95'
-        }
-      }
+      fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] }
     }
   }
 };
@@ -35,19 +28,47 @@ tailwind.config = {
 <body>
 
 <!-- ============================================================
-     AUTH VIEW
+     AUTH VIEW — split layout
      ============================================================ -->
 <div id="authView">
-  <div class="auth-shell">
-    <div class="auth-logo">
-      <div class="auth-logo-mark">
+  <!-- Panel kiri: branding -->
+  <div class="auth-brand">
+    <div class="auth-brand-logo">
+      <div class="auth-brand-logo-icon">
         <i data-lucide="users-round"></i>
       </div>
-      <h1>SalingFollow</h1>
-      <p>Naik followers bareng-bareng, adil & gratis</p>
+      SalingFollow
     </div>
 
-    <div class="auth-card">
+    <div class="auth-brand-copy">
+      <h2>Bantu sesama,<br>naik <span class="accent">followers</span> bareng.</h2>
+      <p>Platform komunitas untuk saling follow antar creator Indonesia. Adil, transparan, dan gratis.</p>
+      <div class="auth-brand-cta">
+        <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
+        Mulai Gratis Sekarang
+      </div>
+    </div>
+
+    <div class="auth-brand-footer">
+      © 2025 SalingFollow · Dibuat dengan ❤️ untuk creator Indonesia
+    </div>
+
+    <div class="auth-brand-decor"></div>
+  </div>
+
+  <!-- Panel kanan: form -->
+  <div class="auth-form-wrap">
+    <div class="auth-form-inner">
+      <div class="auth-mobile-logo">
+        <div class="auth-brand-logo-icon" style="width:32px;height:32px">
+          <i data-lucide="users-round" style="width:18px;height:18px"></i>
+        </div>
+        SalingFollow
+      </div>
+
+      <h1>Selamat datang 👋</h1>
+      <p>Masuk atau daftar untuk mulai kumpulkan kredit.</p>
+
       <div class="auth-tabs">
         <button data-auth-tab="login" class="auth-tab-btn active">Masuk</button>
         <button data-auth-tab="register" class="auth-tab-btn">Daftar</button>
@@ -58,9 +79,6 @@ tailwind.config = {
         <div>
           <label class="form-label">Email / Username</label>
           <input id="loginEmail" type="text" placeholder="nama@email.com" class="form-input">
-          <p style="font-size:10.5px;color:var(--ink-3);margin-top:6px;font-weight:600">
-            Admin? Login pakai <code style="background:var(--surface-2);padding:1px 5px;border-radius:4px">admin</code>
-          </p>
         </div>
         <div>
           <label class="form-label">Password</label>
@@ -68,7 +86,7 @@ tailwind.config = {
         </div>
         <div id="loginStatus" class="status-msg hidden"></div>
         <button id="btnLogin" class="btn-primary">
-          <i data-lucide="log-in" style="width:16px;height:16px"></i> Masuk
+          Masuk <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
         </button>
       </div>
 
@@ -80,8 +98,7 @@ tailwind.config = {
         </div>
         <div>
           <label class="form-label">Username</label>
-          <input id="regUsername" type="text" placeholder="budi123" class="form-input" style="font-family:ui-monospace,monospace">
-          <p style="font-size:10.5px;color:var(--ink-3);margin-top:6px;font-weight:600">Min 3 karakter, huruf/angka/underscore</p>
+          <input id="regUsername" type="text" placeholder="budi123" class="form-input">
         </div>
         <div>
           <label class="form-label">Email</label>
@@ -93,27 +110,22 @@ tailwind.config = {
         </div>
         <div id="registerStatus" class="status-msg hidden"></div>
         <button id="btnRegister" class="btn-primary">
-          <i data-lucide="user-plus" style="width:16px;height:16px"></i> Daftar Gratis
+          Daftar Gratis <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
         </button>
 
-        <div class="info-box warn" style="margin-top:6px">
+        <div class="info-box warn" style="margin-top:4px">
           <i data-lucide="gift"></i>
-          <span>Dapat <b style="color:#78350f">3 kredit gratis</b> untuk mulai!</span>
+          <span>Dapat <b>3 kredit gratis</b> saat mendaftar!</span>
         </div>
       </div>
     </div>
-
-    <p style="text-align:center;font-size:11px;color:var(--ink-3);margin-top:24px;line-height:1.55">
-      Follow-for-follow bisa melanggar ToS Instagram/TikTok.<br>
-      Pakai dengan risiko sendiri.
-    </p>
   </div>
 </div>
 
 <!-- ============================================================
      APP VIEW
      ============================================================ -->
-<div id="appView" class="hidden min-h-screen pb-24">
+<div id="appView" class="hidden">
 
   <header class="app-header">
     <div class="app-header-inner">
@@ -125,7 +137,7 @@ tailwind.config = {
         <div class="header-sub">SalingFollow</div>
       </div>
       <button id="btnLogout" class="icon-header-btn" title="Keluar">
-        <i data-lucide="log-out" style="width:18px;height:18px"></i>
+        <i data-lucide="log-out"></i>
       </button>
     </div>
   </header>
@@ -133,50 +145,74 @@ tailwind.config = {
   <main class="app-main">
 
     <!-- Pending Banner -->
-    <div id="pendingBanner" class="hidden">
-      <button id="btnOpenVerify" class="pending-banner">
-        <div class="pending-banner-icon">
-          <i data-lucide="bell-ring"></i>
+    <div id="pendingBanner" class="hidden" style="margin-bottom:20px">
+      <button id="btnOpenVerify" class="feed-card" style="width:100%;display:flex;align-items:center;gap:14px;text-align:left;padding:16px 18px;border-color:#fde68a;background:#fffbeb">
+        <div style="width:44px;height:44px;border-radius:12px;background:#f59e0b;color:#fff;display:grid;place-items:center;flex-shrink:0">
+          <i data-lucide="bell-ring" style="width:20px;height:20px"></i>
         </div>
-        <div class="pending-banner-body">
-          <div class="pending-banner-title">Ada yang klaim follow kamu!</div>
-          <div class="pending-banner-sub">Klik untuk verifikasi (<span id="pendingCount">0</span>)</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px;color:#78350f">Ada yang klaim follow kamu!</div>
+          <div style="font-size:12px;color:#b45309;margin-top:2px">Klik untuk verifikasi (<span id="pendingCount">0</span>)</div>
         </div>
-        <i data-lucide="chevron-right"></i>
+        <i data-lucide="chevron-right" style="width:18px;height:18px;color:#b45309;flex-shrink:0"></i>
       </button>
     </div>
 
-    <!-- Credits Hero Card -->
-    <div class="credits-card anim-fade-up">
-      <div class="credits-card-inner">
-        <div>
-          <div class="credits-label">Kredit Kamu</div>
-          <div id="creditsValue" class="credits-value">—</div>
-          <div class="credits-hint">1 follow = +1 kredit • Boost 24j = −3 kredit</div>
-        </div>
-        <div class="credits-coin">
+    <!-- STATS ROW (persis reference) -->
+    <div class="stats-row">
+      <div class="stat-card delay-1">
+        <div class="stat-icon green">
           <i data-lucide="coins"></i>
         </div>
+        <div class="stat-value" id="creditsValue">—</div>
+        <div class="stat-label">Kredit Kamu</div>
+        <div class="stat-sub">1 follow = +1 kredit</div>
+      </div>
+
+      <div class="stat-card delay-2">
+        <div class="stat-icon orange">
+          <i data-lucide="user-plus"></i>
+        </div>
+        <div class="stat-value" id="statGiven">0</div>
+        <div class="stat-label">Follow Diberikan</div>
+        <div class="stat-sub">Bantuan ke member lain</div>
+      </div>
+
+      <div class="stat-card delay-3">
+        <div class="stat-icon blue">
+          <i data-lucide="heart"></i>
+        </div>
+        <div class="stat-value" id="statReceived">0</div>
+        <div class="stat-label">Follow Diterima</div>
+        <div class="stat-sub">Bantuan dari member lain</div>
+      </div>
+
+      <div class="stat-card delay-4">
+        <div class="stat-icon purple">
+          <i data-lucide="rocket"></i>
+        </div>
+        <div class="stat-value" id="boostCount">0</div>
+        <div class="stat-label">Akun Aktif</div>
+        <div class="stat-sub">Akun terdaftar di profil</div>
       </div>
     </div>
 
     <!-- TAB: FEED -->
-    <section id="tabFeed" class="tab-section space-y-4 hidden">
+    <section id="tabFeed" class="tab-section">
       <div class="sec-head">
-        <h2 class="sec-title">
-          <span class="sec-title-dot"></span>
-          Cari Follow
-        </h2>
+        <div class="sec-head-left">
+          <h2 class="sec-title">Cari Follow</h2>
+          <p class="sec-desc">Follow akun di bawah, konfirmasi, nanti pemilik approve → +1 kredit.</p>
+        </div>
         <button id="btnRefreshFeed" class="sec-action">
           <i data-lucide="refresh-cw"></i> Refresh
         </button>
       </div>
-      <p class="sec-desc">Klik follow, balik ke sini, konfirmasi. Nanti pemilik verifikasi → dapat +1 kredit.</p>
 
-      <div id="feedNoAccountWarning" class="hidden info-box warn">
+      <div id="feedNoAccountWarning" class="hidden info-box warn" style="margin-bottom:16px">
         <i data-lucide="alert-triangle"></i>
         <div style="flex:1">
-          <div style="font-weight:900;font-size:13px;margin-bottom:3px">Tambah akun sosmed dulu!</div>
+          <div style="font-weight:700;margin-bottom:4px">Tambah akun sosmed dulu</div>
           <div style="margin-bottom:10px">Butuh minimal 1 akun IG/TikTok/YouTube untuk bisa follow orang lain.</div>
           <button id="btnGoToAccounts" class="btn-sm-primary">Tambah Akun</button>
         </div>
@@ -193,17 +229,16 @@ tailwind.config = {
     </section>
 
     <!-- TAB: ACCOUNTS -->
-    <section id="tabAccounts" class="tab-section space-y-4 hidden">
+    <section id="tabAccounts" class="tab-section hidden">
       <div class="sec-head">
-        <h2 class="sec-title">
-          <span class="sec-title-dot"></span>
-          Akun Saya
-        </h2>
+        <div class="sec-head-left">
+          <h2 class="sec-title">Akun Saya</h2>
+          <p class="sec-desc">Akun ini dipakai untuk di-follow member lain dan untuk follow orang lain.</p>
+        </div>
         <button id="btnAddAccount" class="btn-sm-primary">
           <i data-lucide="plus"></i> Tambah
         </button>
       </div>
-      <p class="sec-desc">Akun ini dipakai untuk di-follow member lain DAN untuk follow orang lain.</p>
 
       <div id="accountsList" class="space-y-3"></div>
       <div id="accountsEmpty" class="hidden">
@@ -216,62 +251,59 @@ tailwind.config = {
     </section>
 
     <!-- TAB: STORE -->
-    <section id="tabStore" class="tab-section space-y-4 hidden">
+    <section id="tabStore" class="tab-section hidden">
       <div class="sec-head">
-        <h2 class="sec-title">
-          <span class="sec-title-dot"></span>
-          Beli Kredit
-        </h2>
-      </div>
-      <p class="sec-desc">Beli kredit untuk boost akunmu lebih cepat & dapat lebih banyak follower.</p>
-
-      <div id="storePackages" class="grid grid-cols-2 gap-3"></div>
-
-      <div class="howto-card" style="margin-top:8px">
-        <h3 style="font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px">Info Pembayaran</h3>
-        <div id="storePaymentInfo" style="font-size:12.5px;color:var(--ink-2);white-space:pre-line;font-family:ui-monospace,monospace;background:var(--surface-2);padding:14px;border-radius:12px;line-height:1.7">—</div>
-        <div class="info-box warn" style="margin-top:12px">
-          <i data-lucide="info"></i>
-          <span>Setelah transfer, klik paket yang kamu beli → isi catatan → admin verifikasi maksimal 1×24 jam.</span>
+        <div class="sec-head-left">
+          <h2 class="sec-title">Beli Kredit</h2>
+          <p class="sec-desc">Beli kredit untuk boost akunmu & dapat lebih banyak follower.</p>
         </div>
       </div>
 
-      <div style="margin-top:20px">
-        <h3 style="font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px">Riwayat Pembelian</h3>
-        <div id="myPurchases" class="space-y-2"></div>
+      <div id="storePackages" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px"></div>
+
+      <div class="howto-card" style="margin-bottom:20px">
+        <h3 class="howto-title">Info Pembayaran</h3>
+        <div id="storePaymentInfo" style="font-size:13px;color:var(--ink-2);white-space:pre-line;font-family:ui-monospace,monospace;background:var(--surface-2);padding:14px;border-radius:10px;line-height:1.7">—</div>
+        <div class="info-box warn" style="margin-top:14px">
+          <i data-lucide="info"></i>
+          <span>Setelah transfer, klik paket → isi catatan → admin verifikasi maksimal 1×24 jam.</span>
+        </div>
       </div>
+
+      <h3 class="howto-title" style="margin-bottom:12px">Riwayat Pembelian</h3>
+      <div id="myPurchases" class="space-y-2"></div>
     </section>
 
     <!-- TAB: HISTORY -->
-    <section id="tabHistory" class="tab-section space-y-4 hidden">
+    <section id="tabHistory" class="tab-section hidden">
       <div class="sec-head">
-        <h2 class="sec-title">
-          <span class="sec-title-dot"></span>
-          Riwayat Klaim
-        </h2>
+        <div class="sec-head-left">
+          <h2 class="sec-title">Riwayat Klaim</h2>
+          <p class="sec-desc">Semua klaim follow yang kamu lakukan.</p>
+        </div>
       </div>
       <div id="historyList" class="space-y-2"></div>
       <div id="historyEmpty" class="hidden">
         <div class="empty-state">
           <div class="empty-icon"><i data-lucide="history"></i></div>
           <h3 class="empty-title">Belum ada aktivitas</h3>
-          <p class="empty-desc">Mulai follow akun lain di tab Feed untuk mengumpulkan kredit.</p>
+          <p class="empty-desc">Mulai follow akun lain di tab Feed.</p>
         </div>
       </div>
     </section>
 
     <!-- TAB: PROFILE -->
-    <section id="tabProfile" class="tab-section space-y-4 hidden">
+    <section id="tabProfile" class="tab-section hidden">
       <div class="sec-head">
-        <h2 class="sec-title">
-          <span class="sec-title-dot"></span>
-          Profil
-        </h2>
+        <div class="sec-head-left">
+          <h2 class="sec-title">Profil Saya</h2>
+          <p class="sec-desc">Info akun dan cara kerja sistem.</p>
+        </div>
       </div>
 
-      <div class="profile-hero">
-        <div class="profile-hero-inner">
-          <div id="profileAvatar" class="profile-avatar"><span>?</span></div>
+      <div class="profile-card">
+        <div class="profile-top">
+          <div id="profileAvatar" class="profile-avatar">?</div>
           <div style="min-width:0;flex:1">
             <div id="profileName" class="profile-name">—</div>
             <div id="profileUsername" class="profile-handle">@—</div>
@@ -280,24 +312,24 @@ tailwind.config = {
         <div class="profile-stats">
           <div class="stat-box">
             <div class="stat-box-label">Kredit</div>
-            <div id="statCredits" class="stat-box-value brand">0</div>
+            <div id="profileStatCredits" class="stat-box-value brand">0</div>
           </div>
           <div class="stat-box">
             <div class="stat-box-label">Given</div>
-            <div id="statGiven" class="stat-box-value">0</div>
+            <div class="stat-box-value">0</div>
           </div>
           <div class="stat-box">
             <div class="stat-box-label">Received</div>
-            <div id="statReceived" class="stat-box-value">0</div>
+            <div class="stat-box-value">0</div>
           </div>
         </div>
       </div>
 
       <div class="howto-card">
-        <h3 style="font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">Cara Kerja</h3>
+        <h3 class="howto-title">Cara Kerja</h3>
         <div class="howto-step">
           <div class="howto-step-num">1</div>
-          <div>Tambah akun IG/TikTok-mu di tab Akun.</div>
+          <div>Tambah akun IG/TikTok/YouTube-mu di tab Akun.</div>
         </div>
         <div class="howto-step">
           <div class="howto-step-num">2</div>
@@ -305,7 +337,7 @@ tailwind.config = {
         </div>
         <div class="howto-step">
           <div class="howto-step-num">3</div>
-          <div>Pemilik akun cek & approve → kamu <b style="color:var(--brand-600)">+1 kredit</b>. Kalau 48 jam tidak direspon, auto-approve.</div>
+          <div>Pemilik akun cek & approve → kamu <b class="text-brand">+1 kredit</b>. Kalau 48 jam tidak direspon, auto-approve.</div>
         </div>
         <div class="howto-step">
           <div class="howto-step-num">4</div>
@@ -347,53 +379,59 @@ tailwind.config = {
      ============================================================ -->
 <div id="adminView" class="hidden admin-shell">
   <header class="admin-header">
-    <div style="max-width:900px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px">
-      <div style="width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#f43f5e,#be123c);display:grid;place-items:center;color:#fff;box-shadow:0 8px 18px -6px rgba(244,63,94,.5);flex-shrink:0">
-        <i data-lucide="shield-check" style="width:22px;height:22px"></i>
+    <div style="max-width:900px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;gap:12px">
+      <div style="width:38px;height:38px;border-radius:10px;background:#ef4444;display:grid;place-items:center;color:#fff;flex-shrink:0">
+        <i data-lucide="shield-check" style="width:20px;height:20px"></i>
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:900;font-size:14px;letter-spacing:-.02em;color:#fff">Admin Panel</div>
-        <div style="font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#f43f5e;margin-top:2px">SalingFollow</div>
+        <div style="font-weight:700;font-size:14px;color:var(--ink)">Admin Panel</div>
+        <div style="font-size:11px;color:var(--ink-3);margin-top:2px">SalingFollow</div>
       </div>
-      <button id="btnAdminLogout" style="padding:9px 14px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#cbd5e1;font-weight:800;font-size:12px;display:inline-flex;align-items:center;gap:6px;transition:all .2s">
+      <button id="btnAdminLogout" style="padding:8px 14px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);font-weight:600;font-size:12.5px;display:inline-flex;align-items:center;gap:6px">
         <i data-lucide="log-out" style="width:14px;height:14px"></i> Keluar
       </button>
     </div>
   </header>
 
-  <main style="max-width:900px;margin:0 auto;padding:20px 16px">
+  <main style="max-width:900px;margin:0 auto;padding:24px 20px">
 
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px" id="adminStatsGrid">
-      <div class="admin-card" style="padding:16px">
-        <div style="font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px">Total User</div>
-        <div id="adminTotalUsers" style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.03em">—</div>
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px" id="adminStatsGrid">
+      <div class="stat-card">
+        <div class="stat-icon blue"><i data-lucide="users"></i></div>
+        <div class="stat-value" id="adminTotalUsers">—</div>
+        <div class="stat-label">Total User</div>
       </div>
-      <div class="admin-card" style="padding:16px">
-        <div style="font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px">Kredit Beredar</div>
-        <div id="adminTotalCredits" style="font-size:26px;font-weight:900;color:#10b981;letter-spacing:-.03em">—</div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i data-lucide="coins"></i></div>
+        <div class="stat-value" id="adminTotalCredits">—</div>
+        <div class="stat-label">Kredit Beredar</div>
       </div>
-      <div class="admin-card" style="padding:16px">
-        <div style="font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px">Total Klaim</div>
-        <div id="adminTotalClaims" style="font-size:26px;font-weight:900;color:#a78bfa;letter-spacing:-.03em">—</div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><i data-lucide="git-pull-request"></i></div>
+        <div class="stat-value" id="adminTotalClaims">—</div>
+        <div class="stat-label">Total Klaim</div>
       </div>
-      <div class="admin-card" style="padding:16px">
-        <div style="font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px">Pending Beli</div>
-        <div id="adminPendingPurchases" style="font-size:26px;font-weight:900;color:#fbbf24;letter-spacing:-.03em">—</div>
+      <div class="stat-card">
+        <div class="stat-icon amber"><i data-lucide="clock"></i></div>
+        <div class="stat-value" id="adminPendingPurchases">—</div>
+        <div class="stat-label">Pending Beli</div>
       </div>
     </div>
 
-    <div style="display:flex;gap:4px;padding:4px;background:rgba(30,30,55,.6);border-radius:16px;margin-bottom:16px;overflow-x:auto">
-      <button data-admin-tab="users" class="admin-tab-btn" style="flex:1;padding:11px 16px;border-radius:12px;font-size:12px;font-weight:800;color:#94a3b8;transition:all .2s;white-space:nowrap;background:transparent">Users</button>
-      <button data-admin-tab="purchases" class="admin-tab-btn" style="flex:1;padding:11px 16px;border-radius:12px;font-size:12px;font-weight:800;color:#94a3b8;transition:all .2s;white-space:nowrap;background:transparent">Pembelian</button>
-      <button data-admin-tab="settings" class="admin-tab-btn" style="flex:1;padding:11px 16px;border-radius:12px;font-size:12px;font-weight:800;color:#94a3b8;transition:all .2s;white-space:nowrap;background:transparent">Pengaturan</button>
+    <!-- Tabs -->
+    <div style="display:flex;gap:4px;padding:4px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;overflow-x:auto">
+      <button data-admin-tab="users" class="admin-tab-btn active" style="flex:1">Users</button>
+      <button data-admin-tab="purchases" class="admin-tab-btn" style="flex:1">Pembelian</button>
+      <button data-admin-tab="settings" class="admin-tab-btn" style="flex:1">Pengaturan</button>
     </div>
 
     <section id="adminTabUsers" class="admin-tab-content">
-      <div class="admin-card" style="padding:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <h2 style="font-weight:900;font-size:14px;color:#fff">Semua User</h2>
-          <button id="btnAdminRefreshUsers" style="font-size:12px;font-weight:800;color:#94a3b8;display:inline-flex;align-items:center;gap:6px;background:transparent;border:none">
-            <i data-lucide="refresh-cw" style="width:14px;height:14px"></i> Refresh
+      <div class="admin-card" style="padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h2 style="font-weight:700;font-size:15px;color:var(--ink);margin:0">Semua User</h2>
+          <button id="btnAdminRefreshUsers" class="sec-action">
+            <i data-lucide="refresh-cw"></i> Refresh
           </button>
         </div>
         <div id="adminUsersList" class="space-y-2"></div>
@@ -401,11 +439,11 @@ tailwind.config = {
     </section>
 
     <section id="adminTabPurchases" class="admin-tab-content hidden">
-      <div class="admin-card" style="padding:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <h2 style="font-weight:900;font-size:14px;color:#fff">Pembelian Kredit</h2>
-          <button id="btnAdminRefreshPurchases" style="font-size:12px;font-weight:800;color:#94a3b8;display:inline-flex;align-items:center;gap:6px;background:transparent;border:none">
-            <i data-lucide="refresh-cw" style="width:14px;height:14px"></i> Refresh
+      <div class="admin-card" style="padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h2 style="font-weight:700;font-size:15px;color:var(--ink);margin:0">Pembelian Kredit</h2>
+          <button id="btnAdminRefreshPurchases" class="sec-action">
+            <i data-lucide="refresh-cw"></i> Refresh
           </button>
         </div>
         <div id="adminPurchasesList" class="space-y-2"></div>
@@ -413,23 +451,27 @@ tailwind.config = {
     </section>
 
     <section id="adminTabSettings" class="admin-tab-content hidden">
-      <div class="admin-card" style="padding:20px">
-        <h2 style="font-weight:900;font-size:14px;color:#fff;margin-bottom:16px">Pengaturan Aplikasi</h2>
-        <div style="margin-bottom:14px">
-          <label style="display:block;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px">Info Pembayaran</label>
-          <textarea id="adminSetPaymentInfo" rows="4" style="width:100%;padding:14px;border-radius:12px;background:rgba(10,10,26,.7);border:1.5px solid rgba(255,255,255,.1);color:#e2e8f0;font-family:ui-monospace,monospace;font-size:13px;outline:none;resize:vertical"></textarea>
+      <div class="admin-card" style="padding:22px">
+        <h2 style="font-weight:700;font-size:15px;color:var(--ink);margin:0 0 18px">Pengaturan Aplikasi</h2>
+
+        <div style="margin-bottom:16px">
+          <label class="form-label">Info Pembayaran</label>
+          <textarea id="adminSetPaymentInfo" rows="4" class="form-input" style="font-family:ui-monospace,monospace;resize:vertical"></textarea>
         </div>
-        <div style="margin-bottom:14px">
-          <label style="display:block;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px">Welcome Credits</label>
-          <input id="adminSetWelcomeCredits" type="number" min="0" style="width:100%;padding:14px;border-radius:12px;background:rgba(10,10,26,.7);border:1.5px solid rgba(255,255,255,.1);color:#e2e8f0;font-size:14px;outline:none">
+
+        <div style="margin-bottom:16px">
+          <label class="form-label">Welcome Credits</label>
+          <input id="adminSetWelcomeCredits" type="number" min="0" class="form-input">
         </div>
-        <div style="margin-bottom:14px">
-          <label style="display:block;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px">Admin Password</label>
-          <input id="adminSetAdminKey" type="text" style="width:100%;padding:14px;border-radius:12px;background:rgba(10,10,26,.7);border:1.5px solid rgba(255,255,255,.1);color:#e2e8f0;font-family:ui-monospace,monospace;font-size:14px;outline:none">
-          <p style="font-size:11px;color:#fbbf24;margin-top:8px;font-weight:600">⚠ Ganti juga di assets/js/config.js agar sinkron.</p>
+
+        <div style="margin-bottom:18px">
+          <label class="form-label">Admin Password</label>
+          <input id="adminSetAdminKey" type="text" class="form-input" style="font-family:ui-monospace,monospace">
+          <p style="font-size:12px;color:#b45309;margin-top:8px;font-weight:500">⚠ Ganti juga di assets/js/config.js agar sinkron.</p>
         </div>
-        <button id="btnAdminSaveSettings" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,#10b981,#047857);color:#fff;font-weight:900;font-size:14px;border:none;cursor:pointer;box-shadow:0 10px 22px -6px rgba(16,185,129,.5)">
-          <i data-lucide="save" style="width:16px;height:16px;display:inline;vertical-align:-3px;margin-right:6px"></i> Simpan Pengaturan
+
+        <button id="btnAdminSaveSettings" class="btn-primary" style="width:100%">
+          <i data-lucide="save" style="width:16px;height:16px"></i> Simpan Pengaturan
         </button>
       </div>
     </section>
@@ -441,19 +483,18 @@ tailwind.config = {
 <div id="modalChooseFollower" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalChooseFollower"></div>
   <div class="modal-card">
-    <div class="modal-grab"></div>
     <div class="modal-header">
       <div>
         <h3 class="modal-title">Pilih Akunmu</h3>
-        <p class="modal-subtitle">Pakai akun mana untuk follow</p>
+        <p style="font-size:12.5px;color:var(--ink-3);margin:4px 0 0">Pakai akun mana untuk follow</p>
       </div>
       <button class="modal-close" data-close-modal="modalChooseFollower">
-        <i data-lucide="x" style="width:18px;height:18px"></i>
+        <i data-lucide="x"></i>
       </button>
     </div>
     <div class="modal-body">
-      <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:14px;line-height:1.55">
-        Kamu akan follow <b id="chooseTargetName">@—</b> di <b id="chooseTargetPlatform">—</b>. Pilih akunmu yang mana yang dipakai.
+      <p style="font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.55">
+        Kamu akan follow <b id="chooseTargetName">@—</b> di <b id="chooseTargetPlatform">—</b>.
       </p>
       <div id="followerAccountChoices" class="space-y-2"></div>
       <div id="chooseNoAccount" class="hidden info-box warn" style="margin-top:8px">
@@ -467,17 +508,16 @@ tailwind.config = {
 <div id="modalAddAccount" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalAddAccount"></div>
   <div class="modal-card">
-    <div class="modal-grab"></div>
     <div class="modal-header">
       <h3 class="modal-title">Tambah Akun Sosmed</h3>
       <button class="modal-close" data-close-modal="modalAddAccount">
-        <i data-lucide="x" style="width:18px;height:18px"></i>
+        <i data-lucide="x"></i>
       </button>
     </div>
     <div class="modal-body space-y-4">
       <div>
         <label class="form-label">Platform</label>
-        <div id="platformGrid" class="grid grid-cols-5 gap-2"></div>
+        <div id="platformGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px"></div>
       </div>
       <div>
         <label class="form-label">Username (tanpa @)</label>
@@ -498,21 +538,20 @@ tailwind.config = {
 <div id="modalBoost" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalBoost"></div>
   <div class="modal-card">
-    <div class="modal-grab"></div>
     <div class="modal-header">
-      <h3 class="modal-title">Boost Akun 🚀</h3>
+      <h3 class="modal-title">Boost Akun</h3>
       <button class="modal-close" data-close-modal="modalBoost">
-        <i data-lucide="x" style="width:18px;height:18px"></i>
+        <i data-lucide="x"></i>
       </button>
     </div>
     <div class="modal-body space-y-4">
-      <div style="padding:16px;border-radius:16px;background:linear-gradient(135deg,var(--accent-50),#fff);border:1.5px solid var(--accent-200)">
-        <div style="font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-600);margin-bottom:6px">Akun yang Di-boost</div>
-        <div id="boostTargetName" style="font-weight:900;font-size:14px;color:var(--ink)">@—</div>
+      <div style="padding:16px;border-radius:12px;background:var(--amber-50);border:1px solid #fde68a">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#b45309;margin-bottom:6px">Akun yang Di-boost</div>
+        <div id="boostTargetName" style="font-weight:700;font-size:14px;color:var(--ink)">@—</div>
       </div>
       <div>
         <label class="form-label">Durasi</label>
-        <div class="grid grid-cols-3 gap-2">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
           <button data-dur="24" class="boost-dur-btn boost-dur-active">24 jam</button>
           <button data-dur="48" class="boost-dur-btn">48 jam</button>
           <button data-dur="72" class="boost-dur-btn">72 jam</button>
@@ -525,7 +564,7 @@ tailwind.config = {
       <div id="boostStatus" class="status-msg hidden"></div>
     </div>
     <div class="modal-footer">
-      <button id="btnConfirmBoost" class="btn-primary btn-accent">
+      <button id="btnConfirmBoost" class="btn-primary">
         <i data-lucide="rocket" style="width:16px;height:16px"></i> Konfirmasi Boost
       </button>
     </div>
@@ -535,15 +574,14 @@ tailwind.config = {
 <div id="modalPurchase" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalPurchase"></div>
   <div class="modal-card">
-    <div class="modal-grab"></div>
     <div class="modal-header">
       <h3 class="modal-title">Konfirmasi Pembelian</h3>
       <button class="modal-close" data-close-modal="modalPurchase">
-        <i data-lucide="x" style="width:18px;height:18px"></i>
+        <i data-lucide="x"></i>
       </button>
     </div>
     <div class="modal-body space-y-4">
-      <div id="purchaseSummary" style="padding:18px;border-radius:16px;background:var(--surface-2)">—</div>
+      <div id="purchaseSummary" style="padding:18px;border-radius:12px;background:var(--surface-2)">—</div>
       <div class="info-box warn">
         <i data-lucide="alert-circle"></i>
         <span>Transfer dulu ke rekening di tab Toko. Setelah itu submit form ini.</span>
