@@ -5,7 +5,9 @@
 (function() {
   const { $, esc, toast, icon, PLATFORMS, state } = App;
 
-  /* Cek apakah user punya akun untuk follow platform tertentu */
+  /* ============================================================
+     HELPER — cek akun user per platform
+     ============================================================ */
   function hasAccountForPlatform(platform) {
     return state.accounts.some(a => a.platform === platform);
   }
@@ -14,6 +16,9 @@
     return state.accounts.filter(a => a.platform === platform).length;
   }
 
+  /* ============================================================
+     LOAD FEED
+     ============================================================ */
   async function loadFeed() {
     const list = $('feedList');
     const empty = $('feedEmpty');
@@ -28,6 +33,7 @@
     const { data, error } = await sb.rpc('feed_accounts', { p_limit: 30 });
 
     if (error) {
+      console.error('[Feed]', error);
       list.innerHTML = `
         <div class="info-box danger">
           <i data-lucide="alert-circle"></i>
@@ -50,14 +56,16 @@
 
     list.innerHTML = state.feed.map((a, i) => renderFeedCard(a, i)).join('');
 
+    // Binding tombol claim
     list.querySelectorAll('[data-claim-target]').forEach(btn => {
       btn.addEventListener('click', () => chooseFollowerAndClaim(btn.dataset.claimTarget));
     });
 
+    // Binding tombol "Tambah Akun X"
     list.querySelectorAll('[data-add-platform]').forEach(btn => {
       btn.addEventListener('click', () => {
         state.selectedPlatform = btn.dataset.addPlatform;
-        App.switchTab('accounts');
+        App.switchTab?.('accounts');
         setTimeout(() => App.openAddAccountWithPlatform?.(btn.dataset.addPlatform), 200);
       });
     });
@@ -65,17 +73,21 @@
     icon();
   }
 
+  /* ============================================================
+     RENDER FEED CARD
+     ============================================================ */
   function renderFeedCard(a, index) {
     const p = PLATFORMS[a.platform] || { name: a.platform, icon: 'globe', color: '#64748b' };
     const hasAccount = hasAccountForPlatform(a.platform);
     const count = countAccountsForPlatform(a.platform);
+    const hasRequest = a.has_request === true;
     const remaining = a.remaining || 0;
     const total = a.quantity || 0;
     const filled = total - remaining;
     const percent = total > 0 ? Math.round((filled / total) * 100) : 0;
 
-    // Info sisa follower
-    const progressHtml = total > 0 ? `
+    /* ---------- PROGRESS INFO ---------- */
+    const progressHtml = (hasRequest && total > 0) ? `
       <div style="margin-bottom:12px;padding:10px 12px;background:var(--surface-2);border-radius:10px">
         <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);font-weight:600;margin-bottom:5px">
           <span>Butuh ${remaining} follower lagi</span>
@@ -87,10 +99,19 @@
       </div>
     ` : '';
 
-    // Aksi
+    /* ---------- TOMBOL AKSI ---------- */
     let actionHtml = '';
 
-    if (hasAccount) {
+    if (!hasRequest) {
+      // Akun target belum dibuka request — belum bisa di-follow
+      actionHtml = `
+        <div class="info-box warn" style="font-size:12px">
+          <i data-lucide="clock"></i>
+          <span>Pemilik belum membuka request follower untuk akun ini.</span>
+        </div>
+      `;
+    } else if (hasAccount) {
+      // User punya akun platform yang sama → bisa follow
       actionHtml = `
         <button data-claim-target="${esc(a.id)}" class="feed-btn">
           <i data-lucide="user-plus"></i> Follow & Klaim +2 Kredit
@@ -101,6 +122,7 @@
         </div>
       `;
     } else {
+      // User belum punya akun platform ini
       actionHtml = `
         <button disabled class="feed-btn" style="background:var(--surface-2);color:var(--ink-3);cursor:not-allowed;box-shadow:none">
           <i data-lucide="lock"></i> Belum Bisa Follow
@@ -119,7 +141,7 @@
     }
 
     return `
-      <div class="feed-card" style="animation-delay:${index * 40}ms">
+      <div class="feed-card" style="animation-delay:${index * 40}ms;${!hasRequest ? 'opacity:.85' : ''}">
         <div class="feed-head">
           <div class="feed-avatar" style="background:${p.color}">
             <i data-lucide="${p.icon}"></i>
@@ -129,6 +151,7 @@
             <div class="feed-meta">${p.name} • dari @${esc(a.owner_username)}</div>
           </div>
           ${a.is_boosted ? '<span class="boost-badge">BOOST</span>' : ''}
+          ${!hasRequest ? '<span style="padding:4px 10px;border-radius:999px;background:#fef3c7;color:#b45309;font-size:10px;font-weight:700">BELUM DIBUKA</span>' : ''}
         </div>
         ${progressHtml}
         ${actionHtml}
@@ -136,10 +159,14 @@
     `;
   }
 
+  /* ============================================================
+     PILIH AKUN UNTUK FOLLOW
+     ============================================================ */
   function chooseFollowerAndClaim(targetId) {
     const t = state.feed.find(a => a.id === targetId);
     if (!t) return;
 
+    // Validasi: user HARUS punya akun dengan platform yang sama
     const choices = state.accounts.filter(a => a.platform === t.platform);
 
     if (!choices.length) {
@@ -147,7 +174,7 @@
       toast(`Kamu belum punya akun ${p.name}. Tambah dulu di tab Akun.`, 'error', 4000);
       setTimeout(() => {
         state.selectedPlatform = t.platform;
-        App.switchTab('accounts');
+        App.switchTab?.('accounts');
         setTimeout(() => App.openAddAccountWithPlatform?.(t.platform), 200);
       }, 1200);
       return;
@@ -162,6 +189,7 @@
     if (noAcc) noAcc.classList.add('hidden');
 
     const p = PLATFORMS[t.platform];
+
     wrap.innerHTML = choices.map(a => `
       <button data-from="${esc(a.id)}" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);text-align:left;transition:all .15s;font-family:inherit;cursor:pointer"
               onmouseover="this.style.borderColor='var(--green-500)';this.style.background='var(--green-50)'"
@@ -179,17 +207,22 @@
 
     wrap.querySelectorAll('[data-from]').forEach(b => {
       b.addEventListener('click', () => {
-        App.closeModal('modalChooseFollower');
+        App.closeModal?.('modalChooseFollower');
         proceedClaim(t, b.dataset.from);
       });
     });
 
-    App.openModal('modalChooseFollower');
+    App.openModal?.('modalChooseFollower');
     icon();
   }
 
+  /* ============================================================
+     BUKA TARGET + KONFIRMASI
+     ============================================================ */
   function proceedClaim(target, fromAccountId) {
+    // Buka platform di tab baru
     window.open(target.profile_url, '_blank');
+    // Setelah user balik, tanya konfirmasi
     setTimeout(() => showClaimConfirm(target, fromAccountId), 800);
   }
 
@@ -260,13 +293,22 @@
       });
     });
 
-    m.querySelector('[data-claim-submit]').addEventListener('click', () => submitClaim(t, fromAccountId));
+    m.querySelector('[data-claim-submit]').addEventListener('click', () => {
+      submitClaim(t, fromAccountId);
+    });
+
     icon();
   }
 
+  /* ============================================================
+     SUBMIT CLAIM
+     ============================================================ */
   async function submitClaim(target, fromAccountId) {
     const btn = document.querySelector('#claimModal [data-claim-submit]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Mengirim...'; }
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Mengirim...';
+    }
 
     try {
       const { error } = await sb.rpc('claim_follow', {
@@ -278,8 +320,13 @@
       document.getElementById('claimModal')?.remove();
       document.body.style.overflow = '';
       toast('Klaim terkirim! Nunggu konfirmasi 🕐', 'success', 4000);
+
       await loadFeed();
+
+      // Refresh riwayat juga kalau ada
+      if (App.loadHistory) App.loadHistory();
     } catch (e) {
+      console.error('[ClaimFollow]', e);
       toast(e.message || 'Gagal klaim', 'error');
       if (btn) {
         btn.disabled = false;
@@ -289,12 +336,19 @@
     }
   }
 
+  /* ============================================================
+     BINDING
+     ============================================================ */
   document.addEventListener('DOMContentLoaded', () => {
-    $('btnRefreshFeed')?.addEventListener('click', loadFeed);
-    $('btnGoToAccounts')?.addEventListener('click', () => App.switchTab('accounts'));
+    document.getElementById('btnRefreshFeed')?.addEventListener('click', loadFeed);
+    document.getElementById('btnGoToAccounts')?.addEventListener('click', () => App.switchTab?.('accounts'));
   });
 
+  /* ============================================================
+     EXPOSE
+     ============================================================ */
   App.loadFeed = loadFeed;
   App.chooseFollowerAndClaim = chooseFollowerAndClaim;
   App.hasAccountForPlatform = hasAccountForPlatform;
+
 })();
