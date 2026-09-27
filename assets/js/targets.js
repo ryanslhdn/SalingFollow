@@ -5,13 +5,10 @@
 (function() {
   const { $, esc, toast, icon, status, clearStatus, openModal, closeModal, PLATFORMS, state } = App;
 
-  // State lokal
   state.selectedTargetPlatform = 'instagram';
   state.currentRequestTarget = null;
 
-  /* ============================================================
-     LOAD TARGETS
-     ============================================================ */
+  /* ---------- LOAD TARGETS ---------- */
   async function loadTargets() {
     const list = $('targetAccountsList');
     const empty = $('targetAccountsEmpty');
@@ -58,9 +55,6 @@
     await loadRequests();
   }
 
-  /* ============================================================
-     RENDER TARGET CARD
-     ============================================================ */
   function renderTargetCard(t, index) {
     const p = PLATFORMS[t.platform] || { name: t.platform, icon: 'globe', color: '#64748b' };
     const hasActive = !!t.active_request_id;
@@ -122,9 +116,6 @@
     `;
   }
 
-  /* ============================================================
-     LOAD MY REQUESTS
-     ============================================================ */
   async function loadRequests() {
     const list = $('requestsList');
     const empty = $('requestsEmpty');
@@ -193,9 +184,6 @@
     icon();
   }
 
-  /* ============================================================
-     ADD TARGET MODAL
-     ============================================================ */
   function renderTargetPlatformGrid() {
     const grid = $('targetPlatformGrid');
     if (!grid) return;
@@ -229,66 +217,113 @@
     state.selectedTargetPlatform = 'instagram';
     const u = $('targetUsername');
     const url = $('targetUrl');
+    const qty = $('targetQuantity');
     if (u) u.value = '';
-    if (url) {
-      url.value = '';
-      delete url.dataset.manuallyEdited;
-    }
+    if (url) { url.value = ''; delete url.dataset.manuallyEdited; }
+    if (qty) qty.value = '0';
     clearStatus('addTargetStatus');
     renderTargetPlatformGrid();
+    updateTargetCost();
     openModal('modalAddTarget');
     setTimeout(() => $('targetUsername')?.focus(), 200);
+  }
+
+  function updateTargetCost() {
+    const qty = Number($('targetQuantity')?.value) || 0;
+    const credits = state.profile?.credits ?? 0;
+
+    const myEl = $('targetMyCredits');
+    const costEl = $('targetCost');
+    const warnEl = $('targetCreditWarning');
+
+    if (myEl) myEl.textContent = credits + ' kredit';
+    if (costEl) costEl.textContent = qty + ' kredit';
+
+    if (warnEl) {
+      const notEnough = qty > 0 && credits < qty;
+      warnEl.style.display = notEnough ? 'block' : 'none';
+    }
   }
 
   async function saveTarget() {
     const username = $('targetUsername').value.trim().replace(/^@/, '');
     const url = $('targetUrl').value.trim();
+    const qty = Number($('targetQuantity')?.value) || 0;
 
     if (!username) return status('addTargetStatus', 'error', 'Username wajib diisi');
-    if (!/^[a-zA-Z0-9._-]{2,}$/.test(username)) {
-      return status('addTargetStatus', 'error', 'Username tidak valid');
-    }
-    if (!/^https?:\/\//.test(url)) {
-      return status('addTargetStatus', 'error', 'Link harus diawali http:// atau https://');
-    }
+    if (!/^[a-zA-Z0-9._-]{2,}$/.test(username)) return status('addTargetStatus', 'error', 'Username tidak valid');
+    if (!/^https?:\/\//.test(url)) return status('addTargetStatus', 'error', 'Link harus diawali http:// atau https://');
+    if (qty < 0 || qty > 1000) return status('addTargetStatus', 'error', 'Jumlah follower 0-1000');
+
+    const credits = state.profile?.credits ?? 0;
+    const canRequest = qty > 0 && credits >= qty;
 
     const btn = $('btnSaveTarget');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Menyimpan...';
-    }
-    status('addTargetStatus', 'warn', 'Menyimpan...');
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+    status('addTargetStatus', 'warn', 'Menyimpan akun target...');
 
     try {
-      const { error } = await sb.from('social_accounts').insert({
-        user_id: state.user.id,
-        platform: state.selectedTargetPlatform,
-        username,
-        profile_url: url,
-        account_type: 'target',
-      });
+      const { data: inserted, error } = await sb
+        .from('social_accounts')
+        .insert({
+          user_id: state.user.id,
+          platform: state.selectedTargetPlatform,
+          username,
+          profile_url: url,
+          account_type: 'target',
+        })
+        .select()
+        .single();
+
       if (error) throw error;
 
       const p = PLATFORMS[state.selectedTargetPlatform];
-      toast(`Akun target ${p.name} @${username} didaftarkan ✅`, 'success', 3000);
+
+      if (qty > 0) {
+        if (!canRequest) {
+          toast(`Akun @${username} tersimpan. Kredit kurang (butuh ${qty}, punya ${credits})`, 'warn', 5000);
+        } else {
+          status('addTargetStatus', 'warn', 'Membuat request follower...');
+          const { error: reqErr } = await sb.rpc('create_follow_request', {
+            p_target_id: inserted.id,
+            p_quantity: qty,
+          });
+          if (reqErr) {
+            console.error('[SaveTarget] Request failed:', reqErr);
+            toast(`Akun @${username} tersimpan. Gagal buat request: ${reqErr.message}`, 'warn', 5000);
+          } else {
+            toast(`${p.name} @${username} terdaftar + request ${qty} follower ✅`, 'success', 4000);
+          }
+        }
+      } else {
+        toast(`Akun target ${p.name} @${username} didaftarkan ✅`, 'success', 3000);
+      }
+
       closeModal('modalAddTarget');
-      await loadTargets();
+      await Promise.all([
+        loadTargets(),
+        App.loadProfile ? App.loadProfile() : Promise.resolve(),
+        App.loadFeed ? App.loadFeed() : Promise.resolve(),
+      ]);
     } catch (e) {
       console.error('[SaveTarget]', e);
       status('addTargetStatus', 'error', e.message || 'Gagal menyimpan');
     } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Simpan Akun Target';
-      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Simpan Akun Target'; }
     }
   }
 
-  /* ============================================================
-     DELETE TARGET
-     ============================================================ */
+  /* ---------- DELETE TARGET (custom confirm) ---------- */
   async function deleteTarget(id) {
-    if (!confirm('Hapus akun target ini? Request aktif (kalau ada) juga akan dihapus.')) return;
+    const ok = await App.confirm({
+      title: 'Hapus akun target?',
+      desc: 'Akun target ini akan dihapus. Request aktif (kalau ada) juga akan dihapus.',
+      okText: 'Ya, Hapus',
+      cancelText: 'Batal',
+      danger: true,
+      icon: 'trash-2'
+    });
+    if (!ok) return;
 
     const { error } = await sb.from('social_accounts').delete().eq('id', id);
     if (error) return toast('Gagal: ' + error.message, 'error');
@@ -297,13 +332,10 @@
     await loadTargets();
   }
 
-  /* ============================================================
-     REQUEST FOLLOWER
-     ============================================================ */
+  /* ---------- REQUEST FOLLOWER ---------- */
   function openRequest(targetId) {
     state.currentRequestTarget = targetId;
 
-    // Cari username dari DOM
     const btn = document.querySelector(`[data-request-target="${targetId}"]`);
     const card = btn?.closest('.account-card');
     const usernameEl = card?.querySelector('.acc-username');
@@ -317,7 +349,6 @@
 
     clearStatus('requestStatus');
     updateRequestCost();
-
     openModal('modalRequest');
     setTimeout(() => qtyEl?.focus(), 200);
   }
@@ -344,15 +375,10 @@
     if (qty > 1000) return status('requestStatus', 'error', 'Maksimal 1000 follower');
 
     const credits = state.profile?.credits ?? 0;
-    if (credits < qty) {
-      return status('requestStatus', 'error', `Kredit kurang. Butuh ${qty}, kamu punya ${credits}`);
-    }
+    if (credits < qty) return status('requestStatus', 'error', `Kredit kurang. Butuh ${qty}, kamu punya ${credits}`);
 
     const btn = $('btnConfirmRequest');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Memproses...';
-    }
+    if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
     status('requestStatus', 'warn', 'Membuat request...');
 
     try {
@@ -382,22 +408,15 @@
     }
   }
 
-  /* ============================================================
-     BINDING
-     ============================================================ */
   document.addEventListener('DOMContentLoaded', () => {
-    // Add target modal
     $('btnAddTarget')?.addEventListener('click', openAddTarget);
     $('btnSaveTarget')?.addEventListener('click', saveTarget);
 
-    // Auto-fill URL target
     $('targetUsername')?.addEventListener('input', (e) => {
       const u = e.target.value.trim().replace(/^@/, '');
       const p = PLATFORMS[state.selectedTargetPlatform];
       const urlInput = $('targetUrl');
-      if (u && p && urlInput && !urlInput.dataset.manuallyEdited) {
-        urlInput.value = p.url(u);
-      }
+      if (u && p && urlInput && !urlInput.dataset.manuallyEdited) urlInput.value = p.url(u);
     });
 
     $('targetUrl')?.addEventListener('input', () => {
@@ -406,30 +425,24 @@
     });
 
     $('targetUsername')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        $('targetUrl')?.focus();
-      }
+      if (e.key === 'Enter') { e.preventDefault(); $('targetUrl')?.focus(); }
     });
 
     $('targetUrl')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        saveTarget();
-      }
+      if (e.key === 'Enter') { e.preventDefault(); $('targetQuantity')?.focus(); }
     });
 
-    // Request modal
+    $('targetQuantity')?.addEventListener('input', updateTargetCost);
+    $('targetQuantity')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); saveTarget(); }
+    });
+
     $('requestQuantity')?.addEventListener('input', updateRequestCost);
     $('btnConfirmRequest')?.addEventListener('click', submitRequest);
 
-    // Refresh
     $('btnRefreshRequests')?.addEventListener('click', () => loadTargets());
   });
 
-  /* ============================================================
-     EXPOSE
-     ============================================================ */
   App.loadTargets = loadTargets;
   App.loadRequests = loadRequests;
   App.openAddTarget = openAddTarget;
