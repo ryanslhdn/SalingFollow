@@ -1381,3 +1381,109 @@ button {
 }
 .acc-type-badge.tumbal { background: #dbeafe; color: #1e40af; }
 .acc-type-badge.main   { background: #fef3c7; color: #b45309; }
+
+/* ============================================================
+   PLATFORM PICKER — grid 3 kolom dengan icon besar
+   ============================================================ */
+.platform-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.platform-picker .platBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 8px 14px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+}
+
+.platform-picker .platBtn:hover {
+  border-color: var(--line-2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -6px rgba(15,23,42,.12);
+}
+
+.platform-picker .platBtn.active {
+  border-color: var(--green-500);
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+  box-shadow: 0 0 0 3px rgba(16,185,129,.1), 0 8px 20px -8px rgba(16,185,129,.4);
+}
+
+.platform-picker .platBtn.active::after {
+  content: '';
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--green-500);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-size: 10px 10px;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 2px 6px rgba(16,185,129,.5);
+}
+
+.platform-picker .platBtn:active {
+  transform: scale(.97);
+}
+
+.platform-picker .plat-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px -4px rgba(15,23,42,.2);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+
+.platform-picker .platBtn:hover .plat-icon {
+  transform: rotate(-6deg) scale(1.05);
+}
+
+.platform-picker .plat-icon svg {
+  width: 22px;
+  height: 22px;
+  color: #fff;
+  stroke-width: 2.2;
+}
+
+.platform-picker .plat-name {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.platform-picker .platBtn.active .plat-name {
+  color: var(--green-700);
+}
+
+/* Mobile tweaks */
+@media (max-width: 400px) {
+  .platform-picker { gap: 8px; }
+  .platform-picker .platBtn { padding: 14px 6px 12px; }
+  .platform-picker .plat-icon { width: 40px; height: 40px; border-radius: 11px; }
+  .platform-picker .plat-icon svg { width: 20px; height: 20px; }
+  .platform-picker .plat-name { font-size: 10px; }
+}
