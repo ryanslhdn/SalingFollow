@@ -3,7 +3,7 @@
    ============================================================ */
 
 (function() {
-  const { $, esc, toast, icon, formatRupiah, formatDateTime } = App;
+  const { $, esc, toast, icon, formatRupiah, formatDateTime, state } = App;
 
   const ADMIN_KEY = () => sessionStorage.getItem('sf_admin_key');
 
