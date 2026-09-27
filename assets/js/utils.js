@@ -48,17 +48,19 @@ App.clearStatus = (id) => {
 
 /* ---------- MODAL ---------- */
 App.openModal = (id) => {
-  App.$(id)?.classList.remove('hidden');
+  const el = App.$(id);
+  if (el) el.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   App.icon();
 };
 
 App.closeModal = (id) => {
-  App.$(id)?.classList.add('hidden');
+  const el = App.$(id);
+  if (el) el.classList.add('hidden');
   document.body.style.overflow = '';
 };
 
-/* Auto-bind: [data-close-modal] */
+/* Auto-bind: klik [data-close-modal] → close modal */
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-close-modal]');
   if (t) App.closeModal(t.dataset.closeModal);
@@ -67,9 +69,18 @@ document.addEventListener('click', (e) => {
 /* ---------- FORMAT ---------- */
 App.formatDateTime = (iso) => {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString('id-ID', {
-    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-  });
+  try {
+    return new Date(iso).toLocaleString('id-ID', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+  } catch (e) {
+    return '—';
+  }
+};
+
+App.formatRupiah = (n) => {
+  const num = Math.round(Number(n) || 0);
+  return 'Rp ' + num.toLocaleString('id-ID');
 };
 
 /* ---------- PLATFORMS ---------- */
