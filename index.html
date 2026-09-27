@@ -532,22 +532,45 @@ tailwind.config = {
       <div class="header-logo" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i data-lucide="shopping-bag"></i></div>
     </div>
   </header>
+
   <main class="app-main" style="max-width:640px">
-    <div class="info-box success" style="margin-bottom:20px">
-      <i data-lucide="coins"></i>
-      <div>
-        <div style="font-weight:700;margin-bottom:2px">Kredit kamu: <span id="storeMyCredits">—</span></div>
-        <div>Pilih paket, transfer, lalu submit konfirmasi.</div>
+
+    <!-- Store Closed State -->
+    <div id="storeClosedState" class="hidden" style="padding:40px 20px;text-align:center">
+      <div style="width:100px;height:100px;margin:0 auto 20px;border-radius:32px;background:linear-gradient(140deg,#fef3c7,#fde68a);display:grid;place-items:center;box-shadow:0 20px 40px -12px rgba(245,158,11,.4)">
+        <i data-lucide="store" style="width:44px;height:44px;color:#b45309"></i>
       </div>
+      <h2 style="font-size:22px;font-weight:900;letter-spacing:-.03em;color:var(--ink);margin:0 0 10px">Toko Sedang Tutup</h2>
+      <p id="storeClosedMsgDisplay" style="font-size:14px;color:var(--ink-2);line-height:1.6;max-width:360px;margin:0 auto 24px">
+        Admin sedang tidak aktif. Silakan coba lagi nanti.
+      </p>
+      <button id="btnReloadStore" class="btn-primary" style="max-width:220px;margin:0 auto">
+        <i data-lucide="refresh-cw" style="width:16px;height:16px"></i> Cek Lagi
+      </button>
     </div>
-    <h3 class="howto-title" style="margin-bottom:12px">Pilih Paket</h3>
-    <div id="storePackages" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px"></div>
-    <div class="howto-card" style="margin-bottom:20px">
-      <h3 class="howto-title" style="margin-bottom:10px">Info Pembayaran</h3>
-      <div id="storePaymentInfo" style="font-size:13px;color:var(--ink-2);white-space:pre-line;font-family:ui-monospace,monospace;background:var(--surface-2);padding:14px;border-radius:10px;line-height:1.7">—</div>
+
+    <!-- Store Content -->
+    <div id="storeContent">
+      <div class="info-box success" style="margin-bottom:20px">
+        <i data-lucide="coins"></i>
+        <div>
+          <div style="font-weight:700;margin-bottom:2px">Kredit kamu: <span id="storeMyCredits">—</span></div>
+          <div>Pilih paket, transfer, lalu submit konfirmasi.</div>
+        </div>
+      </div>
+
+      <h3 class="howto-title" style="margin-bottom:12px">Pilih Paket</h3>
+      <div id="storePackages" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px"></div>
+
+      <div class="howto-card" style="margin-bottom:20px">
+        <h3 class="howto-title" style="margin-bottom:10px">Info Pembayaran</h3>
+        <div id="storePaymentInfo" style="font-size:13px;color:var(--ink-2);white-space:pre-line;font-family:ui-monospace,monospace;background:var(--surface-2);padding:14px;border-radius:10px;line-height:1.7">—</div>
+      </div>
+
+      <h3 class="howto-title" style="margin-bottom:12px">Riwayat Pembelian</h3>
+      <div id="myPurchases" class="space-y-2" style="margin-bottom:40px"></div>
     </div>
-    <h3 class="howto-title" style="margin-bottom:12px">Riwayat Pembelian</h3>
-    <div id="myPurchases" class="space-y-2" style="margin-bottom:40px"></div>
+
   </main>
 </div>
 
@@ -569,18 +592,23 @@ tailwind.config = {
       </button>
     </div>
   </header>
+
   <main style="max-width:900px;margin:0 auto;padding:24px 20px">
+
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px">
       <div class="stat-card"><div class="stat-icon blue"><i data-lucide="users"></i></div><div class="stat-value" id="adminTotalUsers">—</div><div class="stat-label">Total User</div></div>
       <div class="stat-card"><div class="stat-icon green"><i data-lucide="coins"></i></div><div class="stat-value" id="adminTotalCredits">—</div><div class="stat-label">Kredit Beredar</div></div>
       <div class="stat-card"><div class="stat-icon purple"><i data-lucide="git-pull-request"></i></div><div class="stat-value" id="adminTotalClaims">—</div><div class="stat-label">Total Klaim</div></div>
       <div class="stat-card"><div class="stat-icon amber"><i data-lucide="clock"></i></div><div class="stat-value" id="adminPendingPurchases">—</div><div class="stat-label">Pending Beli</div></div>
     </div>
+
     <div style="display:flex;gap:4px;padding:4px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;overflow-x:auto">
       <button data-admin-tab="users" class="admin-tab-btn active" style="flex:1">Users</button>
       <button data-admin-tab="purchases" class="admin-tab-btn" style="flex:1">Pembelian</button>
+      <button data-admin-tab="store" class="admin-tab-btn" style="flex:1">Toko</button>
       <button data-admin-tab="settings" class="admin-tab-btn" style="flex:1">Pengaturan</button>
     </div>
+
     <section id="adminTabUsers" class="admin-tab-content">
       <div class="admin-card" style="padding:20px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap">
@@ -594,6 +622,7 @@ tailwind.config = {
         <div id="adminUsersList" class="space-y-2"></div>
       </div>
     </section>
+
     <section id="adminTabPurchases" class="admin-tab-content hidden">
       <div class="admin-card" style="padding:20px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap">
@@ -614,6 +643,47 @@ tailwind.config = {
         <div id="adminPurchasesList" class="space-y-2"></div>
       </div>
     </section>
+
+    <section id="adminTabStore" class="admin-tab-content hidden">
+
+      <div class="admin-card" style="padding:20px;margin-bottom:16px">
+        <h2 style="font-weight:700;font-size:15px;color:var(--ink);margin:0 0 16px">Status Toko</h2>
+
+        <div id="storeStatusBox" style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;border:2px solid var(--line);background:var(--surface-2);margin-bottom:16px;transition:all .3s">
+          <div id="storeStatusIcon" style="width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:#d1fae5;color:#047857;flex-shrink:0;transition:all .3s">
+            <i data-lucide="store" style="width:24px;height:24px"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div id="storeStatusTitle" style="font-weight:800;font-size:15px;color:var(--ink);margin-bottom:2px">Memuat...</div>
+            <div id="storeStatusDesc" style="font-size:12.5px;color:var(--ink-3);line-height:1.4">—</div>
+          </div>
+          <label class="toggle" style="flex-shrink:0">
+            <input type="checkbox" id="storeOpenToggle" onchange="AdminStore.toggleStore(this.checked)">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <label class="form-label">Pesan Saat Toko Tutup</label>
+          <textarea id="storeClosedMsg" rows="3" class="form-input" style="resize:vertical" placeholder="Contoh: Toko sedang tutup, buka lagi besok jam 8 pagi"></textarea>
+          <button onclick="AdminStore.saveClosedMsg()" class="btn-primary" style="margin-top:10px;font-size:12.5px;padding:10px">
+            <i data-lucide="save" style="width:14px;height:14px"></i> Simpan Pesan
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-card" style="padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap">
+          <h2 style="font-weight:700;font-size:15px;color:var(--ink);margin:0">Paket Kredit</h2>
+          <button id="btnAdminAddPackage" onclick="AdminStore.openPackageForm()" class="btn-sm-primary" style="font-size:12px">
+            <i data-lucide="plus" style="width:14px;height:14px"></i> Tambah Paket
+          </button>
+        </div>
+        <div id="adminPackagesList" class="space-y-2"></div>
+      </div>
+
+    </section>
+
     <section id="adminTabSettings" class="admin-tab-content hidden">
       <div class="admin-card" style="padding:22px">
         <h2 style="font-weight:700;font-size:15px;color:var(--ink);margin:0 0 18px">Pengaturan Aplikasi</h2>
@@ -633,7 +703,54 @@ tailwind.config = {
         <button id="btnAdminSaveSettings" class="btn-primary" style="width:100%"><i data-lucide="save" style="width:16px;height:16px"></i> Simpan Pengaturan</button>
       </div>
     </section>
+
   </main>
+
+  <!-- MODAL: Edit / Tambah Paket -->
+  <div id="modalAdminPackage" class="modal-wrapper hidden">
+    <div class="modal-backdrop" data-close-modal="modalAdminPackage"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="adminPkgTitle">Tambah Paket</h3>
+        <button class="modal-close" data-close-modal="modalAdminPackage"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body space-y-4">
+        <input type="hidden" id="adminPkgId">
+
+        <div>
+          <label class="form-label">Nama Paket</label>
+          <input id="adminPkgName" type="text" placeholder="Contoh: Starter" class="form-input">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label class="form-label">Kredit</label>
+            <input id="adminPkgCredits" type="number" min="1" placeholder="10" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">Harga (Rp)</label>
+            <input id="adminPkgPrice" type="number" min="0" placeholder="500" class="form-input">
+          </div>
+        </div>
+
+        <label class="toggle-row" style="padding:12px;background:var(--surface-2);border-radius:12px;border:1px solid var(--line)">
+          <input type="checkbox" id="adminPkgActive" checked>
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">Tampilkan di toko user</span>
+        </label>
+
+        <div id="adminPkgStatus" class="status-msg hidden"></div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px">
+        <button type="button" data-close-modal="modalAdminPackage" style="flex:1;padding:12px;border-radius:10px;background:var(--surface-2);color:var(--ink-2);font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;border:none">
+          Batal
+        </button>
+        <button id="btnAdminSavePkg" onclick="AdminStore.savePackage()" class="btn-primary" style="flex:1.4">
+          <i data-lucide="save" style="width:16px;height:16px"></i> Simpan
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
@@ -766,6 +883,9 @@ tailwind.config = {
 
 <div id="toasts"></div>
 
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
 <script src="assets/js/config.js"></script>
 <script src="assets/js/client.js"></script>
 <script src="assets/js/utils.js"></script>
@@ -779,7 +899,9 @@ tailwind.config = {
 <script src="assets/js/store.js"></script>
 <script src="assets/js/tabs.js"></script>
 <script src="assets/js/admin.js"></script>
+<script src="assets/js/admin-store.js"></script>
 <script src="assets/js/app.js"></script>
+
 <script>
 /* ---------- REVEAL ON SCROLL ---------- */
 (function() {
