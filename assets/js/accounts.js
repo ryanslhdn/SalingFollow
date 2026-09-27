@@ -25,37 +25,37 @@
     }
 
     empty.classList.add('hidden');
-    list.innerHTML = state.accounts.map((a, i) => {
-      const p = PLATFORMS[a.platform] || { name:a.platform, icon:'globe', color:'#64748b' };
-      const boosted = a.boost_until && new Date(a.boost_until) > new Date();
-      const boostLabel = boosted
-        ? `🚀 s.d. ${App.formatDateTime(a.boost_until)}`
-        : 'Belum di-boost';
-
-      return `
-        <div class="item-card" style="animation-delay:${i * 30}ms">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 rounded-2xl grid place-items-center flex-shrink-0" style="background:${p.color}">
-              <i data-lucide="${p.icon}" class="w-5 h-5 text-white"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="font-black text-sm truncate">@${esc(a.username)}</div>
-              <div class="text-[11px] ${boosted ? 'text-amber-600 font-bold' : 'text-slate-500 font-semibold'}">${p.name} • ${boostLabel}</div>
-            </div>
-            <button data-delete-acc="${esc(a.id)}" class="w-9 h-9 rounded-xl hover:bg-red-50 hover:text-red-500 grid place-items-center text-slate-400 flex-shrink-0">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-          </div>
-          <div class="flex gap-2">
-            <a href="${esc(a.profile_url)}" target="_blank" rel="noopener" class="flex-1 py-2.5 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs text-center">
-              <i data-lucide="external-link" class="w-3.5 h-3.5 inline mr-1"></i> Buka
-            </a>
-            <button data-boost-acc="${esc(a.id)}" class="flex-1 py-2.5 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white font-black text-xs shadow-lg shadow-amber-500/30">
-              <i data-lucide="rocket" class="w-3.5 h-3.5 inline mr-1"></i> Boost
-            </button>
-          </div>
-        </div>`;
-    }).join('');
+   list.innerHTML = state.accounts.map((a, i) => {
+     const p = PLATFORMS[a.platform] || { name:a.platform, icon:'globe', color:'#64748b' };
+     const boosted = a.boost_until && new Date(a.boost_until) > new Date();
+     const boostLabel = boosted
+       ? `🚀 Aktif sampai ${App.formatDateTime(a.boost_until)}`
+       : 'Belum di-boost';
+   
+     return `
+       <div class="account-card ${boosted ? 'boosted' : ''}" style="animation-delay:${i * 50}ms">
+         <div class="acc-head">
+           <div class="acc-avatar ${boosted ? 'boosted' : ''}" style="background:${p.color}">
+             <i data-lucide="${p.icon}"></i>
+           </div>
+           <div class="acc-info">
+             <div class="acc-username">@${esc(a.username)}</div>
+             <div class="acc-boost-label ${boosted ? 'active' : ''}">${p.name} • ${boostLabel}</div>
+           </div>
+           <button data-delete-acc="${esc(a.id)}" class="acc-del">
+             <i data-lucide="trash-2"></i>
+           </button>
+         </div>
+         <div class="acc-actions">
+           <a href="${esc(a.profile_url)}" target="_blank" rel="noopener" class="acc-btn ghost">
+             <i data-lucide="external-link"></i> Buka
+           </a>
+           <button data-boost-acc="${esc(a.id)}" class="acc-btn boost">
+             <i data-lucide="rocket"></i> Boost
+           </button>
+         </div>
+       </div>`;
+   }).join('');
 
     list.querySelectorAll('[data-delete-acc]').forEach(b => {
       b.addEventListener('click', () => deleteAccount(b.dataset.deleteAcc));
