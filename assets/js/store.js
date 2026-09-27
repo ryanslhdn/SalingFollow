@@ -1,6 +1,6 @@
 /* ============================================================
-   STORE — Beli kredit dengan bukti transfer
-   v3: Modal dinamis + upload bukti
+   STORE — Beli kredit (v4 — Anti-gagal)
+   Pakai onclick inline, function global, modal dinamis
    ============================================================ */
 
 (function() {
@@ -12,6 +12,7 @@
   state.currentPackage = null;
   state.proofFile = null;
   state.proofPreview = null;
+  state.adminPackages = state.adminPackages || [];
 
   /* ============================================================
      LOAD STORE
@@ -36,16 +37,22 @@
           </div>`;
       } else {
         wrap.innerHTML = state.adminPackages.map((p, i) => `
-          <button type="button" data-pkg-id="${esc(p.id)}" class="pkg-card" style="animation-delay:${i * 50}ms;cursor:pointer;font-family:inherit">
+          <div class="pkg-card" style="animation-delay:${i * 50}ms">
             <div class="pkg-name">${esc(p.name)}</div>
             <div class="pkg-credits">${p.credits}</div>
             <div class="pkg-credits-label">kredit</div>
             <div class="pkg-price">${formatRupiah(p.price_idr)}</div>
-          </button>
+            <button type="button"
+                    onclick="App.openPurchase('${esc(p.id)}')"
+                    style="width:100%;margin-top:12px;padding:11px;border-radius:9px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:800;font-size:13px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px -4px rgba(16,185,129,.4)">
+              Beli Sekarang
+            </button>
+          </div>
         `).join('');
       }
     }
 
+    // Payment info
     const { data: settings } = await sb.from('app_settings').select('*');
     const settingsMap = Object.fromEntries((settings || []).map(s => [s.key, s.value]));
     const infoEl = $('storePaymentInfo');
@@ -53,6 +60,7 @@
       infoEl.textContent = settingsMap.payment_info || 'Hubungi admin untuk info pembayaran.';
     }
 
+    // My credits
     const myCreditsEl = $('storeMyCredits');
     if (myCreditsEl) {
       myCreditsEl.textContent = (state.profile?.credits ?? 0) + ' kredit';
@@ -116,9 +124,11 @@
   }
 
   /* ============================================================
-     OPEN PURCHASE MODAL
+     OPEN PURCHASE MODAL (global function)
      ============================================================ */
   function openPurchase(pkgId) {
+    console.log('[Store] openPurchase called for:', pkgId);
+
     const pkg = state.adminPackages.find(p => p.id === pkgId);
     if (!pkg) {
       toast('Paket tidak ditemukan', 'error');
@@ -132,53 +142,81 @@
     // Hapus modal lama kalau ada
     document.getElementById('dynamicPurchaseModal')?.remove();
 
+    // Bikin modal
     const m = document.createElement('div');
     m.id = 'dynamicPurchaseModal';
-    m.className = 'modal-wrapper';
+    m.style.cssText = `
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(15,23,42,.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    `;
+
     m.innerHTML = `
-      <div class="modal-backdrop" data-close-purchase></div>
-      <div class="modal-card" style="max-height:94vh">
-        <div class="modal-header">
+      <div id="dynPurchaseCard" style="
+        position: relative;
+        width: 100%;
+        max-width: 440px;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 40px 80px -20px rgba(15,23,42,.35);
+        max-height: 94vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
+      ">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #e5e7eb">
           <div>
-            <h3 class="modal-title">Konfirmasi Pembelian</h3>
-            <p style="font-size:12.5px;color:var(--ink-3);margin:4px 0 0">${esc(pkg.name)}</p>
+            <div style="font-weight:800;font-size:16px;color:#111827;letter-spacing:-.02em">Konfirmasi Pembelian</div>
+            <div style="font-size:12.5px;color:#9ca3af;margin-top:3px">${esc(pkg.name)}</div>
           </div>
-          <button type="button" class="modal-close" data-close-purchase>
-            <i data-lucide="x"></i>
+          <button type="button" onclick="App.closePurchaseModal()" style="width:34px;height:34px;border-radius:8px;background:transparent;border:1px solid transparent;cursor:pointer;display:grid;place-items:center;color:#9ca3af">
+            <i data-lucide="x" style="width:18px;height:18px"></i>
           </button>
         </div>
 
-        <div class="modal-body space-y-4" style="overflow-y:auto">
+        <!-- Body -->
+        <div style="padding:20px;overflow-y:auto;flex:1">
 
-          <!-- Ringkasan Paket -->
-          <div style="padding:16px;border-radius:12px;background:var(--green-50);border:1px solid var(--green-100)">
+          <!-- Ringkasan -->
+          <div style="padding:16px;border-radius:12px;background:#ecfdf5;border:1px solid #d1fae5;margin-bottom:16px">
             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
-              <span style="font-size:12px;color:var(--green-700);font-weight:600">Paket</span>
-              <span style="font-weight:700;color:var(--ink);font-size:14px">${esc(pkg.name)}</span>
+              <span style="font-size:12px;color:#047857;font-weight:600">Paket</span>
+              <span style="font-weight:700;color:#111827;font-size:14px">${esc(pkg.name)}</span>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
-              <span style="font-size:12px;color:var(--green-700);font-weight:600">Kredit</span>
-              <span style="font-weight:800;color:var(--green-600);font-size:18px">${pkg.credits}</span>
+              <span style="font-size:12px;color:#047857;font-weight:600">Kredit</span>
+              <span style="font-weight:800;color:#10b981;font-size:18px">${pkg.credits}</span>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:8px;border-top:1px dashed rgba(0,0,0,.1)">
-              <span style="font-size:12px;color:var(--green-700);font-weight:600">Total Bayar</span>
-              <span style="font-weight:900;color:var(--ink);font-size:16px">${formatRupiah(pkg.price_idr)}</span>
+              <span style="font-size:12px;color:#047857;font-weight:600">Total Bayar</span>
+              <span style="font-weight:900;color:#111827;font-size:16px">${formatRupiah(pkg.price_idr)}</span>
             </div>
           </div>
 
-          <!-- Transfer Info -->
-          <div class="info-box warn">
-            <i data-lucide="alert-circle"></i>
-            <div style="flex:1">
-              <div style="font-weight:700;margin-bottom:3px">Transfer dulu ${formatRupiah(pkg.price_idr)}</div>
-              <div style="font-size:11.5px">Lihat info rekening di halaman Toko, lalu upload bukti transfer di bawah.</div>
+          <!-- Info -->
+          <div style="padding:12px 14px;border-radius:10px;background:#fffbeb;border:1px solid #fde68a;display:flex;gap:10px;margin-bottom:16px">
+            <i data-lucide="alert-circle" style="width:16px;height:16px;color:#b45309;flex-shrink:0;margin-top:2px"></i>
+            <div style="flex:1;font-size:12.5px;line-height:1.5;color:#78350f">
+              <div style="font-weight:700;margin-bottom:2px">Transfer dulu ${formatRupiah(pkg.price_idr)}</div>
+              <div>Lihat info rekening di halaman Toko, lalu upload bukti transfer di bawah.</div>
             </div>
           </div>
 
           <!-- Metode -->
-          <div>
-            <label class="form-label">Metode Transfer</label>
-            <select id="dynPurchaseMethod" class="form-input">
+          <div style="margin-bottom:16px">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#111827;margin-bottom:6px">Metode Transfer</label>
+            <select id="dynPurchaseMethod" style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;outline:none;font-family:inherit">
               <option value="BCA">BCA</option>
               <option value="Mandiri">Mandiri</option>
               <option value="BRI">BRI</option>
@@ -191,60 +229,51 @@
           </div>
 
           <!-- Upload Bukti -->
-          <div>
-            <label class="form-label">Bukti Transfer <span style="color:#ef4444">*</span></label>
-            <input type="file" id="dynProofInput" accept="image/*" class="hidden" style="display:none">
+          <div style="margin-bottom:16px">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#111827;margin-bottom:6px">
+              Bukti Transfer <span style="color:#ef4444">*</span>
+            </label>
+            <input type="file" id="dynProofInput" accept="image/*" style="display:none">
             <div id="dynProofArea"></div>
           </div>
 
           <!-- Catatan -->
-          <div>
-            <label class="form-label">Catatan (opsional)</label>
-            <input id="dynPurchaseNote" type="text" placeholder="contoh: transfer dari 0812xxx" class="form-input">
+          <div style="margin-bottom:16px">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#111827;margin-bottom:6px">Catatan (opsional)</label>
+            <input id="dynPurchaseNote" type="text" placeholder="contoh: transfer dari 0812xxx" style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:14px;outline:none;font-family:inherit">
           </div>
 
-          <div id="dynPurchaseStatus" class="status-msg hidden"></div>
+          <div id="dynPurchaseStatus" style="display:none;padding:10px 14px;border-radius:9px;font-size:12.5px;font-weight:600"></div>
 
         </div>
 
-        <div class="modal-footer" style="display:flex;gap:8px">
-          <button type="button" data-close-purchase style="flex:1;padding:12px;border-radius:10px;background:var(--surface-2);color:var(--ink-2);font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;border:none">
+        <!-- Footer -->
+        <div style="display:flex;gap:8px;padding:16px 20px;border-top:1px solid #e5e7eb;background:#f9fafb">
+          <button type="button" onclick="App.closePurchaseModal()" style="flex:1;padding:12px;border-radius:10px;background:#f3f4f6;color:#4b5563;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;border:1px solid #e5e7eb">
             Batal
           </button>
-          <button type="button" id="dynBtnConfirm" class="btn-primary" style="flex:1.4">
+          <button type="button" id="dynBtnConfirm" style="flex:1.4;padding:12px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:800;font-size:13px;font-family:inherit;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:6px">
             <i data-lucide="send" style="width:16px;height:16px"></i> Kirim Konfirmasi
           </button>
         </div>
+
       </div>
     `;
 
     document.body.appendChild(m);
     document.body.style.overflow = 'hidden';
 
-    // Close handlers
-    m.querySelectorAll('[data-close-purchase]').forEach(el => {
-      el.addEventListener('click', closePurchaseModal);
-    });
+    // Render area bukti (kosong dulu)
+    renderProofArea();
 
-    // Upload handler
+    // Bind upload
     const proofInput = m.querySelector('#dynProofInput');
     proofInput.addEventListener('change', handleProofChange);
 
-    // Render area kosong dulu
-    renderProofArea(m);
-
-    // Confirm handler
-    m.querySelector('#dynBtnConfirm').addEventListener('click', () => {
-      submitPurchase(pkg.id, m);
-    });
+    // Bind confirm
+    m.querySelector('#dynBtnConfirm').addEventListener('click', () => submitPurchase(pkg.id));
 
     icon();
-
-    // Auto focus
-    setTimeout(() => {
-      // scroll ke atas modal
-      m.querySelector('.modal-body')?.scrollTo({ top: 0 });
-    }, 100);
   }
 
   function closePurchaseModal() {
@@ -255,17 +284,17 @@
   }
 
   /* ============================================================
-     PROOF UPLOAD HANDLER
+     PROOF AREA
      ============================================================ */
-  function renderProofArea(modalEl) {
-    const area = modalEl.querySelector('#dynProofArea');
+  function renderProofArea() {
+    const area = document.getElementById('dynProofArea');
     if (!area) return;
 
     if (state.proofPreview) {
       area.innerHTML = `
-        <div style="position:relative;border-radius:12px;overflow:hidden;border:2px solid var(--green-200,#a7f3d0)">
+        <div style="position:relative;border-radius:12px;overflow:hidden;border:2px solid #a7f3d0">
           <img src="${state.proofPreview}" style="width:100%;max-height:240px;object-fit:contain;background:#fff;display:block">
-          <button type="button" data-remove-proof style="position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:10px;background:rgba(15,23,42,.8);color:#fff;border:none;cursor:pointer;display:grid;place-items:center">
+          <button type="button" onclick="App.removeProof()" style="position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:10px;background:rgba(15,23,42,.8);color:#fff;border:none;cursor:pointer;display:grid;place-items:center">
             <i data-lucide="x" style="width:16px;height:16px"></i>
           </button>
           <div style="position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(90deg,#10b981,#059669);color:#fff;font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:6px">
@@ -273,29 +302,18 @@
           </div>
         </div>
       `;
-
-      area.querySelector('[data-remove-proof]').addEventListener('click', () => {
-        state.proofFile = null;
-        state.proofPreview = null;
-        renderProofArea(modalEl);
-        icon();
-      });
     } else {
       area.innerHTML = `
-        <button type="button" data-upload-proof style="width:100%;padding:22px 16px;border-radius:12px;border:2px dashed var(--line-2);background:var(--surface-2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:inherit;transition:all .15s">
-          <div style="width:48px;height:48px;border-radius:12px;background:#fff;border:1px solid var(--line);display:grid;place-items:center">
-            <i data-lucide="image-plus" style="width:22px;height:22px;color:var(--ink-3)"></i>
+        <button type="button" onclick="document.getElementById('dynProofInput').click()" style="width:100%;padding:22px 16px;border-radius:12px;border:2px dashed #d1d5db;background:#f9fafb;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-family:inherit">
+          <div style="width:48px;height:48px;border-radius:12px;background:#fff;border:1px solid #e5e7eb;display:grid;place-items:center">
+            <i data-lucide="image-plus" style="width:22px;height:22px;color:#9ca3af"></i>
           </div>
           <div style="text-align:center">
-            <div style="font-size:13px;font-weight:700;color:var(--ink)">Upload Bukti Transfer</div>
-            <div style="font-size:11px;color:var(--ink-3);margin-top:2px">JPG / PNG · Max 5MB</div>
+            <div style="font-size:13px;font-weight:700;color:#111827">Upload Bukti Transfer</div>
+            <div style="font-size:11px;color:#9ca3af;margin-top:2px">JPG / PNG · Max 5MB</div>
           </div>
         </button>
       `;
-
-      area.querySelector('[data-upload-proof]').addEventListener('click', () => {
-        modalEl.querySelector('#dynProofInput').click();
-      });
     }
 
     icon();
@@ -320,41 +338,44 @@
     const reader = new FileReader();
     reader.onload = (ev) => {
       state.proofPreview = ev.target.result;
-      const modalEl = document.getElementById('dynamicPurchaseModal');
-      if (modalEl) renderProofArea(modalEl);
+      renderProofArea();
     };
     reader.readAsDataURL(file);
   }
 
   /* ============================================================
-     SUBMIT PURCHASE (dengan upload bukti)
+     SUBMIT PURCHASE
      ============================================================ */
-  async function submitPurchase(pkgId, modalEl) {
-    const method = modalEl.querySelector('#dynPurchaseMethod')?.value || 'BCA';
-    const note = modalEl.querySelector('#dynPurchaseNote')?.value.trim() || null;
-    const btn = modalEl.querySelector('#dynBtnConfirm');
-    const statusEl = modalEl.querySelector('#dynPurchaseStatus');
+  async function submitPurchase(pkgId) {
+    const method = document.getElementById('dynPurchaseMethod')?.value || 'BCA';
+    const note = document.getElementById('dynPurchaseNote')?.value.trim() || null;
+    const btn = document.getElementById('dynBtnConfirm');
+    const statusEl = document.getElementById('dynPurchaseStatus');
 
     if (!state.proofFile) {
       if (statusEl) {
-        statusEl.className = 'status-msg error';
-        statusEl.textContent = 'Upload bukti transfer dulu';
-        statusEl.classList.remove('hidden');
-      } else {
-        toast('Upload bukti transfer dulu', 'error');
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#fef2f2';
+        statusEl.style.color = '#b91c1c';
+        statusEl.textContent = '⚠ Upload bukti transfer dulu';
       }
       return;
     }
 
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px"></i> Mengunggah...'; icon(); }
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px"></i> Mengunggah...';
+      icon();
+    }
     if (statusEl) {
-      statusEl.className = 'status-msg warn';
+      statusEl.style.display = 'block';
+      statusEl.style.background = '#fffbeb';
+      statusEl.style.color = '#b45309';
       statusEl.textContent = 'Mengunggah bukti...';
-      statusEl.classList.remove('hidden');
     }
 
     try {
-      // 1. Upload bukti ke Storage
+      // 1. Upload ke Storage
       const ext = (state.proofFile.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
       const path = `${state.user.id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
 
@@ -370,7 +391,7 @@
       const { data: pub } = sb.storage.from('payment-proofs').getPublicUrl(path);
       const proofUrl = pub.publicUrl;
 
-      // 2. Submit konfirmasi ke DB
+      // 2. Submit ke DB
       if (statusEl) statusEl.textContent = 'Mengirim konfirmasi...';
 
       const { error } = await sb.rpc('user_create_purchase', {
@@ -387,8 +408,10 @@
     } catch (e) {
       console.error('[Purchase]', e);
       if (statusEl) {
-        statusEl.className = 'status-msg error';
-        statusEl.textContent = e.message || 'Gagal mengirim';
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#fef2f2';
+        statusEl.style.color = '#b91c1c';
+        statusEl.textContent = '⚠ ' + (e.message || 'Gagal mengirim');
       }
       if (btn) {
         btn.disabled = false;
@@ -399,20 +422,15 @@
   }
 
   /* ============================================================
-     EVENT DELEGATION
-     ============================================================ */
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-pkg-id]');
-    if (btn) {
-      e.preventDefault();
-      openPurchase(btn.dataset.pkgId);
-    }
-  });
-
-  /* ============================================================
-     EXPOSE
+     EXPOSE GLOBAL — dipanggil dari onclick inline
      ============================================================ */
   App.loadStore = loadStore;
   App.openPurchase = openPurchase;
+  App.closePurchaseModal = closePurchaseModal;
+  App.removeProof = function() {
+    state.proofFile = null;
+    state.proofPreview = null;
+    renderProofArea();
+  };
 
 })();
