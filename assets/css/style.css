@@ -1319,3 +1319,41 @@ button {
     transition-duration: .01ms !important;
   }
 }
+
+/* ============================================================
+   FEED — Platform requirement badges
+   ============================================================ */
+
+/* Info badge di dalam feed card (di bawah tombol) */
+.feed-ready-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.feed-ready-hint svg {
+  width: 13px;
+  height: 13px;
+  color: var(--green-500);
+  flex-shrink: 0;
+}
+
+/* Tombol follow disabled (belum punya akun) */
+.feed-btn:disabled {
+  background: var(--surface-2);
+  color: var(--ink-3);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.feed-btn:disabled:hover {
+  background: var(--surface-2);
+  transform: none;
+}
+.feed-btn:disabled svg {
+  opacity: .6;
+}
