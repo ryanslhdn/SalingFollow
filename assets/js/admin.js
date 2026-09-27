@@ -116,8 +116,21 @@
     icon();
   }
 
+  /* ---------- ADJUST CREDIT (custom confirm) ---------- */
   async function adminAdjustCredits(userId, sign) {
-    const amt = prompt(`Jumlah kredit (${sign > 0 ? 'tambah' : 'kurang'}):`, '10');
+    const ok = await App.confirm({
+      title: sign > 0 ? 'Tambah Kredit' : 'Kurangi Kredit',
+      desc: sign > 0
+        ? 'Jumlah kredit yang akan ditambahkan ke user ini.'
+        : 'Jumlah kredit yang akan dikurangi dari user ini.',
+      okText: 'Lanjut',
+      cancelText: 'Batal',
+      danger: sign < 0,
+      icon: sign > 0 ? 'plus-circle' : 'minus-circle'
+    });
+    if (!ok) return;
+
+    const amt = prompt('Jumlah kredit:', '10');
     if (!amt) return;
     const amount = Math.abs(Number(amt)) * sign;
     if (!amount || isNaN(amount)) return;
@@ -135,8 +148,19 @@
     await Promise.all([loadAdminUsers(), loadAdminStats()]);
   }
 
+  /* ---------- TOGGLE BAN (custom confirm) ---------- */
   async function adminToggleBan(userId, currentlyBanned) {
-    if (!confirm(currentlyBanned ? 'Unban user ini?' : 'Ban user ini?')) return;
+    const ok = await App.confirm({
+      title: currentlyBanned ? 'Unban user ini?' : 'Ban user ini?',
+      desc: currentlyBanned
+        ? 'User akan bisa aktif kembali di sistem.'
+        : 'User tidak akan bisa ikut aktivitas apapun.',
+      okText: currentlyBanned ? 'Ya, Unban' : 'Ya, Ban',
+      cancelText: 'Batal',
+      danger: !currentlyBanned,
+      icon: currentlyBanned ? 'check-circle' : 'ban'
+    });
+    if (!ok) return;
 
     const { error } = await sb.rpc('admin_set_ban', {
       p_key: ADMIN_KEY(),
@@ -192,7 +216,6 @@
     wrap.innerHTML = data.map((p, i) => {
       const st = stMap[p.status] || stMap.pending;
 
-      // Bukti transfer
       const proofHtml = p.proof_url ? `
         <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:6px">
@@ -260,10 +283,21 @@
     icon();
   }
 
+  /* ---------- REVIEW PURCHASE (custom confirm) ---------- */
   async function reviewPurchase(pid, approve) {
     let note = null;
+
     if (!approve) {
-      note = prompt('Alasan reject (opsional):') || 'Ditolak';
+      const ok = await App.confirm({
+        title: 'Tolak pembelian ini?',
+        desc: 'Kredit tidak akan diberikan ke user.',
+        okText: 'Ya, Tolak',
+        cancelText: 'Batal',
+        danger: true,
+        icon: 'x-circle'
+      });
+      if (!ok) return;
+      note = 'Ditolak';
     }
 
     const { error } = await sb.rpc('admin_review_purchase', {
@@ -297,10 +331,7 @@
 
   async function saveAdminSettings() {
     const btn = $('btnAdminSaveSettings');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Menyimpan...';
-    }
+    if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
 
     try {
       const p = $('adminSetPaymentInfo').value;
@@ -361,8 +392,16 @@
     $('btnAdminRefreshPurchases')?.addEventListener('click', loadAdminPurchases);
     $('btnAdminSaveSettings')?.addEventListener('click', saveAdminSettings);
 
-    $('btnAdminLogout')?.addEventListener('click', () => {
-      if (!confirm('Keluar dari admin panel?')) return;
+    $('btnAdminLogout')?.addEventListener('click', async () => {
+      const ok = await App.confirm({
+        title: 'Keluar dari admin?',
+        desc: 'Kamu akan keluar dari panel admin.',
+        okText: 'Ya, Keluar',
+        cancelText: 'Batal',
+        danger: true,
+        icon: 'log-out'
+      });
+      if (!ok) return;
       sessionStorage.removeItem('sf_admin_key');
       location.reload();
     });
