@@ -130,6 +130,21 @@
     icon();
   }
 
+  /* ---------- Helper: hapus file bukti dari storage ---------- */
+  async function deleteProofFromStorage(url) {
+    if (!url) return;
+    try {
+      const match = url.match(/\/follow-proofs\/(.+)$/);
+      if (!match) return;
+      const path = decodeURIComponent(match[1]);
+      const { error } = await sb.storage.from('follow-proofs').remove([path]);
+      if (error) console.warn('[AutoDelete proof]', error);
+      else console.log('[AutoDelete] Bukti terhapus:', path);
+    } catch (e) {
+      console.warn('[AutoDelete exception]', e);
+    }
+  }
+
   async function verifyClaim(claimId, approve) {
     let reason = null;
     if (!approve) {
@@ -146,12 +161,18 @@
     }
 
     try {
-      const { error } = await sb.rpc('verify_claim', {
+      const { data, error } = await sb.rpc('verify_claim', {
         p_claim_id: claimId,
         p_approve: approve,
         p_reason: reason,
       });
       if (error) throw error;
+
+      // ⭐ AUTO-DELETE bukti setelah verifikasi
+      if (data?.proof_url_to_delete) {
+        // Fire-and-forget — jangan block UI
+        deleteProofFromStorage(data.proof_url_to_delete);
+      }
 
       toast(approve ? '✅ Approved! Follower dapat kredit' : '❌ Rejected', approve ? 'success' : 'info');
       document.getElementById('verifyModal')?.remove();
@@ -162,7 +183,6 @@
       toast(e.message || 'Gagal', 'error');
     }
   }
-
   function setupRealtime() {
     if (state.realtimeChannel) sb.removeChannel(state.realtimeChannel);
     state.realtimeChannel = sb.channel('claims-' + state.user.id)
