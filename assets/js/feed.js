@@ -1,17 +1,15 @@
 /* ============================================================
-   FEED — Daftar akun untuk di-follow + klaim
-   + Validasi platform: user HARUS punya akun platform yang sama
+   FEED — Daftar akun target untuk di-follow
    ============================================================ */
 
 (function() {
   const { $, esc, toast, icon, PLATFORMS, state } = App;
 
-  /* Cek apakah user punya akun dengan platform tertentu */
+  /* Cek apakah user punya akun untuk follow platform tertentu */
   function hasAccountForPlatform(platform) {
     return state.accounts.some(a => a.platform === platform);
   }
 
-  /* Hitung berapa akun user per platform */
   function countAccountsForPlatform(platform) {
     return state.accounts.filter(a => a.platform === platform).length;
   }
@@ -22,17 +20,10 @@
     const warn = $('feedNoAccountWarning');
 
     const hasAnyAccount = state.accounts && state.accounts.length > 0;
-
-    // Warning global: user belum punya akun sama sekali
-    if (warn) {
-      warn.classList.toggle('hidden', hasAnyAccount);
-    }
+    if (warn) warn.classList.toggle('hidden', hasAnyAccount);
 
     if (!list) return;
-    list.innerHTML = `
-      <div style="text-align:center;padding:24px;color:var(--ink-3);font-size:13px">
-        Memuat...
-      </div>`;
+    list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-3);font-size:13px">Memuat...</div>';
 
     const { data, error } = await sb.rpc('feed_accounts', { p_limit: 30 });
 
@@ -59,17 +50,15 @@
 
     list.innerHTML = state.feed.map((a, i) => renderFeedCard(a, i)).join('');
 
-    // Binding tombol
     list.querySelectorAll('[data-claim-target]').forEach(btn => {
       btn.addEventListener('click', () => chooseFollowerAndClaim(btn.dataset.claimTarget));
     });
 
-    // Binding tombol "Tambah Akun X"
     list.querySelectorAll('[data-add-platform]').forEach(btn => {
       btn.addEventListener('click', () => {
         state.selectedPlatform = btn.dataset.addPlatform;
         App.switchTab('accounts');
-        setTimeout(() => App.openAddAccountWithPlatform(btn.dataset.addPlatform), 200);
+        setTimeout(() => App.openAddAccountWithPlatform?.(btn.dataset.addPlatform), 200);
       });
     });
 
@@ -80,23 +69,38 @@
     const p = PLATFORMS[a.platform] || { name: a.platform, icon: 'globe', color: '#64748b' };
     const hasAccount = hasAccountForPlatform(a.platform);
     const count = countAccountsForPlatform(a.platform);
+    const remaining = a.remaining || 0;
+    const total = a.quantity || 0;
+    const filled = total - remaining;
+    const percent = total > 0 ? Math.round((filled / total) * 100) : 0;
 
-    // ---------- TOMBOL + HINT ----------
+    // Info sisa follower
+    const progressHtml = total > 0 ? `
+      <div style="margin-bottom:12px;padding:10px 12px;background:var(--surface-2);border-radius:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);font-weight:600;margin-bottom:5px">
+          <span>Butuh ${remaining} follower lagi</span>
+          <span>${filled} / ${total}</span>
+        </div>
+        <div style="height:5px;border-radius:3px;background:var(--line);overflow:hidden">
+          <div style="height:100%;width:${percent}%;background:linear-gradient(90deg,var(--green-500),var(--green-600));border-radius:3px"></div>
+        </div>
+      </div>
+    ` : '';
+
+    // Aksi
     let actionHtml = '';
 
     if (hasAccount) {
-      // User siap follow
       actionHtml = `
         <button data-claim-target="${esc(a.id)}" class="feed-btn">
-          <i data-lucide="user-plus"></i> Follow & Klaim +1 Kredit
+          <i data-lucide="user-plus"></i> Follow & Klaim +2 Kredit
         </button>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-3)">
+        <div style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11.5px;color:var(--ink-3)">
           <i data-lucide="check-circle" style="width:13px;height:13px;color:var(--green-500)"></i>
-          <span>Kamu punya ${count} akun ${p.name} — siap follow</span>
+          <span>Kamu punya ${count} akun ${p.name} siap dipakai</span>
         </div>
       `;
     } else {
-      // User belum punya akun platform ini
       actionHtml = `
         <button disabled class="feed-btn" style="background:var(--surface-2);color:var(--ink-3);cursor:not-allowed;box-shadow:none">
           <i data-lucide="lock"></i> Belum Bisa Follow
@@ -105,7 +109,7 @@
           <i data-lucide="alert-triangle"></i>
           <div style="flex:1">
             <div style="font-weight:700;margin-bottom:3px">Kamu belum punya akun ${p.name}</div>
-            <div style="margin-bottom:8px">Tambah akun ${p.name} dulu untuk bisa follow akun ${p.name} orang lain.</div>
+            <div style="margin-bottom:8px">Tambah akun ${p.name} dulu untuk bisa follow akun ini.</div>
             <button data-add-platform="${esc(a.platform)}" class="btn-sm-primary" style="font-size:11.5px">
               <i data-lucide="plus" style="width:13px;height:13px"></i> Tambah Akun ${p.name}
             </button>
@@ -115,7 +119,7 @@
     }
 
     return `
-      <div class="feed-card" style="animation-delay:${index * 40}ms;${!hasAccount ? 'opacity:.92' : ''}">
+      <div class="feed-card" style="animation-delay:${index * 40}ms">
         <div class="feed-head">
           <div class="feed-avatar" style="background:${p.color}">
             <i data-lucide="${p.icon}"></i>
@@ -126,27 +130,25 @@
           </div>
           ${a.is_boosted ? '<span class="boost-badge">BOOST</span>' : ''}
         </div>
+        ${progressHtml}
         ${actionHtml}
       </div>
     `;
   }
 
-  /* ---------- PILIH AKUN FOLLOWER ---------- */
   function chooseFollowerAndClaim(targetId) {
     const t = state.feed.find(a => a.id === targetId);
     if (!t) return;
 
-    // Validasi: user HARUS punya akun dengan platform yang sama
     const choices = state.accounts.filter(a => a.platform === t.platform);
 
     if (!choices.length) {
       const p = PLATFORMS[t.platform] || { name: t.platform };
       toast(`Kamu belum punya akun ${p.name}. Tambah dulu di tab Akun.`, 'error', 4000);
-      // Auto-redirect ke tab akun
       setTimeout(() => {
         state.selectedPlatform = t.platform;
         App.switchTab('accounts');
-        setTimeout(() => App.openAddAccountWithPlatform(t.platform), 200);
+        setTimeout(() => App.openAddAccountWithPlatform?.(t.platform), 200);
       }, 1200);
       return;
     }
@@ -157,7 +159,6 @@
 
     const wrap = $('followerAccountChoices');
     const noAcc = $('chooseNoAccount');
-
     if (noAcc) noAcc.classList.add('hidden');
 
     const p = PLATFORMS[t.platform];
@@ -178,9 +179,8 @@
 
     wrap.querySelectorAll('[data-from]').forEach(b => {
       b.addEventListener('click', () => {
-        const fromId = b.dataset.from;
         App.closeModal('modalChooseFollower');
-        proceedClaim(t, fromId);
+        proceedClaim(t, b.dataset.from);
       });
     });
 
@@ -189,9 +189,7 @@
   }
 
   function proceedClaim(target, fromAccountId) {
-    // Buka platform di tab baru
     window.open(target.profile_url, '_blank');
-    // Setelah user balik, tanya konfirmasi
     setTimeout(() => showClaimConfirm(target, fromAccountId), 800);
   }
 
@@ -233,7 +231,7 @@
             <i data-lucide="check-circle"></i>
             <div>
               <div style="font-weight:700;margin-bottom:3px">Sudah follow akun di atas?</div>
-              <div>Pemilik akun akan dapat notif. Kalau approve, kamu dapat <b>+1 kredit</b>.</div>
+              <div>Pemilik akun akan dapat notif. Kalau approve, kamu dapat <b>+2 kredit</b>.</div>
             </div>
           </div>
 
@@ -262,19 +260,13 @@
       });
     });
 
-    m.querySelector('[data-claim-submit]').addEventListener('click', () => {
-      submitClaim(t, fromAccountId);
-    });
-
+    m.querySelector('[data-claim-submit]').addEventListener('click', () => submitClaim(t, fromAccountId));
     icon();
   }
 
   async function submitClaim(target, fromAccountId) {
     const btn = document.querySelector('#claimModal [data-claim-submit]');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Mengirim...';
-    }
+    if (btn) { btn.disabled = true; btn.textContent = 'Mengirim...'; }
 
     try {
       const { error } = await sb.rpc('claim_follow', {
@@ -298,8 +290,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btnRefreshFeed')?.addEventListener('click', loadFeed);
-    document.getElementById('btnGoToAccounts')?.addEventListener('click', () => App.switchTab('accounts'));
+    $('btnRefreshFeed')?.addEventListener('click', loadFeed);
+    $('btnGoToAccounts')?.addEventListener('click', () => App.switchTab('accounts'));
   });
 
   App.loadFeed = loadFeed;
