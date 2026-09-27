@@ -13,11 +13,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] }
-    }
-  }
+  theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] } } }
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3"></script>
@@ -28,18 +24,14 @@ tailwind.config = {
 <body>
 
 <!-- ============================================================
-     AUTH VIEW — split layout
+     AUTH VIEW
      ============================================================ -->
 <div id="authView">
-  <!-- Panel kiri: branding -->
   <div class="auth-brand">
     <div class="auth-brand-logo">
-      <div class="auth-brand-logo-icon">
-        <i data-lucide="users-round"></i>
-      </div>
+      <div class="auth-brand-logo-icon"><i data-lucide="users-round"></i></div>
       SalingFollow
     </div>
-
     <div class="auth-brand-copy">
       <h2>Bantu sesama,<br>naik <span class="accent">followers</span> bareng.</h2>
       <p>Platform komunitas untuk saling follow antar creator Indonesia. Adil, transparan, dan gratis.</p>
@@ -48,15 +40,10 @@ tailwind.config = {
         Mulai Gratis Sekarang
       </div>
     </div>
-
-    <div class="auth-brand-footer">
-      © 2025 SalingFollow · Dibuat dengan ❤️ untuk creator Indonesia
-    </div>
-
+    <div class="auth-brand-footer">© 2025 SalingFollow · Dibuat dengan ❤️ untuk creator Indonesia</div>
     <div class="auth-brand-decor"></div>
   </div>
 
-  <!-- Panel kanan: form -->
   <div class="auth-form-wrap">
     <div class="auth-form-inner">
       <div class="auth-mobile-logo">
@@ -74,7 +61,6 @@ tailwind.config = {
         <button data-auth-tab="register" class="auth-tab-btn">Daftar</button>
       </div>
 
-      <!-- Login -->
       <div id="panelLogin" class="space-y-4">
         <div>
           <label class="form-label">Email / Username</label>
@@ -90,7 +76,6 @@ tailwind.config = {
         </button>
       </div>
 
-      <!-- Register -->
       <div id="panelRegister" class="space-y-4 hidden">
         <div>
           <label class="form-label">Nama Lengkap</label>
@@ -112,7 +97,6 @@ tailwind.config = {
         <button id="btnRegister" class="btn-primary">
           Daftar Gratis <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
         </button>
-
         <div class="info-box warn" style="margin-top:4px">
           <i data-lucide="gift"></i>
           <span>Dapat <b>3 kredit gratis</b> saat mendaftar!</span>
@@ -129,9 +113,7 @@ tailwind.config = {
 
   <header class="app-header">
     <div class="app-header-inner">
-      <div class="header-logo">
-        <i data-lucide="users-round"></i>
-      </div>
+      <div class="header-logo"><i data-lucide="users-round"></i></div>
       <div class="header-text">
         <div id="headerUsername" class="header-name">—</div>
         <div class="header-sub">SalingFollow</div>
@@ -158,39 +140,28 @@ tailwind.config = {
       </button>
     </div>
 
-    <!-- STATS ROW -->
+    <!-- STATS -->
     <div class="stats-row">
       <div class="stat-card delay-1">
-        <div class="stat-icon green">
-          <i data-lucide="coins"></i>
-        </div>
+        <div class="stat-icon green"><i data-lucide="coins"></i></div>
         <div class="stat-value" id="creditsValue">—</div>
         <div class="stat-label">Kredit Kamu</div>
         <div class="stat-sub">1 follow = +2 kredit</div>
       </div>
-
       <div class="stat-card delay-2">
-        <div class="stat-icon orange">
-          <i data-lucide="user-plus"></i>
-        </div>
+        <div class="stat-icon orange"><i data-lucide="user-plus"></i></div>
         <div class="stat-value" id="statGiven">0</div>
         <div class="stat-label">Follow Diberikan</div>
         <div class="stat-sub">Bantuan ke member lain</div>
       </div>
-
       <div class="stat-card delay-3">
-        <div class="stat-icon blue">
-          <i data-lucide="heart"></i>
-        </div>
+        <div class="stat-icon blue"><i data-lucide="heart"></i></div>
         <div class="stat-value" id="statReceived">0</div>
         <div class="stat-label">Follow Diterima</div>
         <div class="stat-sub">Bantuan dari member lain</div>
       </div>
-
       <div class="stat-card delay-4">
-        <div class="stat-icon purple">
-          <i data-lucide="layers"></i>
-        </div>
+        <div class="stat-icon purple"><i data-lucide="layers"></i></div>
         <div class="stat-value" id="boostCount">0</div>
         <div class="stat-label">Akun Aktif</div>
         <div class="stat-sub">Akun terdaftar di profil</div>
@@ -204,7 +175,7 @@ tailwind.config = {
       <div class="sec-head">
         <div class="sec-head-left">
           <h2 class="sec-title">Cari Follow</h2>
-          <p class="sec-desc">Follow akun utama di bawah pakai akun tumbalmu → dapat +2 kredit.</p>
+          <p class="sec-desc">Follow akun target di bawah pakai akunmu → dapat +2 kredit.</p>
         </div>
         <button id="btnRefreshFeed" class="sec-action">
           <i data-lucide="refresh-cw"></i> Refresh
@@ -214,9 +185,9 @@ tailwind.config = {
       <div id="feedNoAccountWarning" class="hidden info-box warn" style="margin-bottom:16px">
         <i data-lucide="alert-triangle"></i>
         <div style="flex:1">
-          <div style="font-weight:700;margin-bottom:4px">Tambah akun tumbal dulu</div>
-          <div style="margin-bottom:10px">Butuh minimal 1 akun tumbal (IG/TikTok/YouTube) untuk bisa follow orang lain.</div>
-          <button id="btnGoToAccounts" class="btn-sm-primary">Tambah Akun Tumbal</button>
+          <div style="font-weight:700;margin-bottom:4px">Tambah akun dulu di tab Akun</div>
+          <div style="margin-bottom:10px">Kamu butuh minimal 1 akun untuk bisa follow orang lain.</div>
+          <button id="btnGoToAccounts" class="btn-sm-primary">Buka Tab Akun</button>
         </div>
       </div>
 
@@ -225,38 +196,28 @@ tailwind.config = {
         <div class="empty-state">
           <div class="empty-icon"><i data-lucide="inbox"></i></div>
           <h3 class="empty-title">Belum ada akun untuk di-follow</h3>
-          <p class="empty-desc">Coba refresh nanti — atau isi kredit & minta follower untuk akun utamamu dulu.</p>
+          <p class="empty-desc">Coba refresh nanti, atau tambahkan akun target di tab Tambah biar orang lain follow kamu balik.</p>
         </div>
       </div>
     </section>
 
     <!-- ============================================================
-         TAB: ACCOUNTS (Tumbal & Utama)
+         TAB: AKUN SAYA (untuk follow orang lain)
          ============================================================ -->
     <section id="tabAccounts" class="tab-section hidden">
       <div class="sec-head">
         <div class="sec-head-left">
           <h2 class="sec-title">Akun Saya</h2>
-          <p class="sec-desc">Kelola akun tumbal & akun utama kamu.</p>
+          <p class="sec-desc">Akun-akun ini dipakai untuk follow orang lain.</p>
         </div>
         <button id="btnAddAccount" class="btn-sm-primary">
           <i data-lucide="plus"></i> Tambah
         </button>
       </div>
 
-      <!-- Sub-tabs: Tumbal / Utama -->
-      <div style="display:flex;gap:4px;padding:4px;background:var(--surface-2);border-radius:12px;margin-bottom:12px">
-        <button data-acc-tab="tumbal" class="acc-subtab active" style="flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:700;color:var(--ink-2);transition:all .15s;font-family:inherit;cursor:pointer;border:none;background:transparent">
-          🔻 Akun Tumbal
-        </button>
-        <button data-acc-tab="main" class="acc-subtab" style="flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:700;color:var(--ink-2);transition:all .15s;font-family:inherit;cursor:pointer;border:none;background:transparent">
-          ⭐ Akun Utama
-        </button>
-      </div>
-
-      <div id="accTypeDesc" class="info-box info" style="margin-bottom:16px">
+      <div class="info-box info" style="margin-bottom:16px">
         <i data-lucide="info"></i>
-        <span>Akun tumbal dipakai untuk follow orang lain dan dapat kredit.</span>
+        <span>Setiap akun yang kamu daftarkan di sini bisa dipakai untuk follow akun target user lain.</span>
       </div>
 
       <div id="accountsList" class="space-y-3"></div>
@@ -264,22 +225,22 @@ tailwind.config = {
         <div class="empty-state">
           <div class="empty-icon"><i data-lucide="user-plus"></i></div>
           <h3 class="empty-title">Belum ada akun</h3>
-          <p class="empty-desc">Tambah akun IG/TikTok/YouTube-mu biar bisa ikut sistem follow-for-follow.</p>
+          <p class="empty-desc">Tambah akun IG/TikTok/YouTube-mu biar bisa ikut follow-for-follow.</p>
         </div>
       </div>
     </section>
 
     <!-- ============================================================
-         TAB: REQUESTS (Minta Follower)
+         TAB: TAMBAH FOLLOW (akun target yang muncul di feed)
          ============================================================ -->
-    <section id="tabRequests" class="tab-section hidden">
+    <section id="tabAddFollow" class="tab-section hidden">
       <div class="sec-head">
         <div class="sec-head-left">
-          <h2 class="sec-title">Minta Follower</h2>
-          <p class="sec-desc">Tukar kredit jadi follower untuk akun utamamu.</p>
+          <h2 class="sec-title">Tambah Follow</h2>
+          <p class="sec-desc">Daftarkan akun yang mau ditambahi follower — akan muncul di feed user lain.</p>
         </div>
-        <button id="btnRefreshRequests" class="sec-action">
-          <i data-lucide="refresh-cw"></i> Refresh
+        <button id="btnAddTarget" class="btn-sm-primary">
+          <i data-lucide="plus"></i> Daftarkan Akun
         </button>
       </div>
 
@@ -287,44 +248,33 @@ tailwind.config = {
         <i data-lucide="lightbulb"></i>
         <div>
           <div style="font-weight:700;margin-bottom:2px">1 kredit = 1 follower</div>
-          <div>Pilih akun utama → tentukan jumlah follower → sistem akan tampilkan ke tumbal user lain.</div>
+          <div>Setelah akun target terdaftar, klik "Minta Follower" → tentukan jumlah → tukar kredit jadi follower nyata.</div>
         </div>
       </div>
 
-      <!-- Form buat request -->
-      <div class="howto-card" style="margin-bottom:16px">
-        <h3 class="howto-title" style="margin-bottom:12px">Buat Request Baru</h3>
-
-        <div style="margin-bottom:12px">
-          <label class="form-label">Pilih Akun Utama</label>
-          <select id="reqAccountSelect" class="form-input">
-            <option value="">— Belum ada akun utama —</option>
-          </select>
+      <!-- Akun target list -->
+      <div id="targetAccountsList" class="space-y-3" style="margin-bottom:24px"></div>
+      <div id="targetAccountsEmpty" class="hidden">
+        <div class="empty-state">
+          <div class="empty-icon"><i data-lucide="target"></i></div>
+          <h3 class="empty-title">Belum ada akun target</h3>
+          <p class="empty-desc">Daftarkan akun yang mau ditambahi follower (boleh IG/TikTok/YouTube).</p>
         </div>
-
-        <div style="margin-bottom:12px">
-          <label class="form-label">Jumlah Follower Yang Diminta</label>
-          <input id="reqQuantity" type="number" min="1" max="1000" value="10" class="form-input">
-          <p style="font-size:11px;color:var(--ink-3);margin-top:4px">
-            Kreditmu: <b id="reqMyCredits">—</b> • Cost: <b id="reqCost">10 kredit</b>
-          </p>
-        </div>
-
-        <div id="reqStatus" class="status-msg hidden" style="margin-bottom:12px"></div>
-
-        <button id="btnCreateRequest" class="btn-primary">
-          <i data-lucide="user-plus" style="width:16px;height:16px"></i> Minta Follower
-        </button>
       </div>
 
       <!-- Riwayat request -->
-      <h3 class="howto-title" style="margin-bottom:12px">Request Aktif & Riwayat</h3>
+      <div class="sec-head" style="margin-top:28px">
+        <div class="sec-head-left">
+          <h2 class="sec-title" style="font-size:16px">Request Follower</h2>
+        </div>
+      </div>
       <div id="requestsList" class="space-y-2"></div>
       <div id="requestsEmpty" class="hidden">
-        <div class="empty-state">
-          <div class="empty-icon"><i data-lucide="list-checks"></i></div>
-          <h3 class="empty-title">Belum ada request</h3>
-          <p class="empty-desc">Buat request di atas untuk mulai dapat follower.</p>
+        <div class="empty-state" style="padding:32px 24px">
+          <div class="empty-icon" style="width:56px;height:56px">
+            <i data-lucide="list-checks" style="width:24px;height:24px"></i>
+          </div>
+          <p class="empty-desc">Belum ada request. Klik "Minta Follower" pada akun target di atas.</p>
         </div>
       </div>
     </section>
@@ -388,19 +338,19 @@ tailwind.config = {
         <h3 class="howto-title">Cara Kerja</h3>
         <div class="howto-step">
           <div class="howto-step-num">1</div>
-          <div>Tambah <b>akun tumbal</b> (untuk follow orang lain) di tab Akun.</div>
+          <div>Tambah <b>akun kamu</b> di tab <b>Akun</b> — dipakai untuk follow orang lain.</div>
         </div>
         <div class="howto-step">
           <div class="howto-step-num">2</div>
-          <div>Tambah <b>akun utama</b> (yang mau ditambah follower) di tab Akun.</div>
+          <div>Tambah <b>akun target</b> di tab <b>Tambah</b> — yang mau ditambahi follower.</div>
         </div>
         <div class="howto-step">
           <div class="howto-step-num">3</div>
-          <div>Follow akun utama orang lain pakai tumbalmu → dapat <b class="text-brand">+2 kredit</b>.</div>
+          <div>Follow akun target orang lain di Feed pakai akunmu → dapat <b class="text-brand">+2 kredit</b>.</div>
         </div>
         <div class="howto-step">
           <div class="howto-step-num">4</div>
-          <div>Masuk tab <b>Minta Follower</b> → tukar <b>1 kredit = 1 follower</b> untuk akun utamamu.</div>
+          <div>Tukar kredit jadi follower untuk akun targetmu — <b>1 kredit = 1 follower</b>.</div>
         </div>
         <div class="howto-step warn">
           <div class="howto-step-num">!</div>
@@ -411,9 +361,7 @@ tailwind.config = {
 
   </main>
 
-  <!-- ============================================================
-       BOTTOM NAV — 5 tab
-       ============================================================ -->
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <div class="bottom-nav-inner">
       <button data-tab="feed" class="tab-btn active">
@@ -422,8 +370,8 @@ tailwind.config = {
       <button data-tab="accounts" class="tab-btn">
         <i data-lucide="user-circle"></i><span>Akun</span>
       </button>
-      <button data-tab="requests" class="tab-btn">
-        <i data-lucide="user-plus"></i><span>Minta</span>
+      <button data-tab="addFollow" class="tab-btn">
+        <i data-lucide="target"></i><span>Tambah</span>
       </button>
       <button data-tab="history" class="tab-btn">
         <i data-lucide="history"></i><span>Riwayat</span>
@@ -436,7 +384,7 @@ tailwind.config = {
 </div>
 
 <!-- ============================================================
-     ADMIN VIEW
+     ADMIN VIEW (tidak berubah)
      ============================================================ -->
 <div id="adminView" class="hidden admin-shell">
   <header class="admin-header">
@@ -455,7 +403,6 @@ tailwind.config = {
   </header>
 
   <main style="max-width:900px;margin:0 auto;padding:24px 20px">
-
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px" id="adminStatsGrid">
       <div class="stat-card">
         <div class="stat-icon blue"><i data-lucide="users"></i></div>
@@ -517,37 +464,33 @@ tailwind.config = {
           <label class="form-label">Info Pembayaran</label>
           <textarea id="adminSetPaymentInfo" rows="4" class="form-input" style="font-family:ui-monospace,monospace;resize:vertical"></textarea>
         </div>
-
         <div style="margin-bottom:16px">
           <label class="form-label">Welcome Credits</label>
           <input id="adminSetWelcomeCredits" type="number" min="0" class="form-input">
         </div>
-
         <div style="margin-bottom:18px">
           <label class="form-label">Admin Password</label>
           <input id="adminSetAdminKey" type="text" class="form-input" style="font-family:ui-monospace,monospace">
           <p style="font-size:12px;color:#b45309;margin-top:8px;font-weight:500">⚠ Ganti juga di assets/js/config.js agar sinkron.</p>
         </div>
-
         <button id="btnAdminSaveSettings" class="btn-primary" style="width:100%">
           <i data-lucide="save" style="width:16px;height:16px"></i> Simpan Pengaturan
         </button>
       </div>
     </section>
-
   </main>
 </div>
 
 <!-- ============================================================
-     MODAL: PILIH AKUN TUMBAL UNTUK FOLLOW
+     MODAL: PILIH AKUN UNTUK FOLLOW
      ============================================================ -->
 <div id="modalChooseFollower" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalChooseFollower"></div>
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <h3 class="modal-title">Pilih Akun Tumbal</h3>
-        <p style="font-size:12.5px;color:var(--ink-3);margin:4px 0 0">Pakai akun tumbal mana untuk follow</p>
+        <h3 class="modal-title">Pilih Akun Follow</h3>
+        <p style="font-size:12.5px;color:var(--ink-3);margin:4px 0 0">Akun mana yang dipakai untuk follow</p>
       </div>
       <button class="modal-close" data-close-modal="modalChooseFollower">
         <i data-lucide="x"></i>
@@ -560,42 +503,28 @@ tailwind.config = {
       <div id="followerAccountChoices" class="space-y-2"></div>
       <div id="chooseNoAccount" class="hidden info-box warn" style="margin-top:8px">
         <i data-lucide="alert-triangle"></i>
-        <span>Kamu belum punya akun tumbal <span id="chooseNoAccountPlatform">—</span>. Tambah dulu di tab Akun.</span>
+        <span>Kamu belum punya akun <span id="chooseNoAccountPlatform">—</span>. Tambah dulu di tab Akun.</span>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ============================================================
-     MODAL: ADD ACCOUNT
+     MODAL: ADD ACCOUNT (untuk follow orang)
      ============================================================ -->
 <div id="modalAddAccount" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalAddAccount"></div>
   <div class="modal-card">
     <div class="modal-header">
-      <h3 class="modal-title">Tambah Akun Sosmed</h3>
+      <h3 class="modal-title">Tambah Akun</h3>
       <button class="modal-close" data-close-modal="modalAddAccount">
         <i data-lucide="x"></i>
       </button>
     </div>
     <div class="modal-body space-y-4">
-
-      <!-- Jenis Akun -->
-      <div>
-        <label class="form-label">Jenis Akun</label>
-        <div id="accTypeGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button data-type="tumbal" class="accTypeBtn" style="padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-family:inherit;cursor:pointer;transition:all .15s">
-            <div style="font-size:22px;margin-bottom:4px">🔻</div>
-            <div style="font-weight:700;font-size:13px;color:var(--ink)">Tumbal</div>
-            <div style="font-size:11px;color:var(--ink-3);margin-top:2px">Untuk follow orang lain</div>
-          </button>
-          <button data-type="main" class="accTypeBtn" style="padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-family:inherit;cursor:pointer;transition:all .15s">
-            <div style="font-size:22px;margin-bottom:4px">⭐</div>
-            <div style="font-weight:700;font-size:13px;color:var(--ink)">Utama</div>
-            <div style="font-size:11px;color:var(--ink-3);margin-top:2px">Yang mau ditambah follower</div>
-          </button>
-        </div>
-      </div>
+      <p style="font-size:13px;color:var(--ink-3);margin:0;line-height:1.5">
+        Akun ini akan dipakai untuk follow akun target user lain.
+      </p>
 
       <div>
         <label class="form-label">Platform</label>
@@ -621,20 +550,101 @@ tailwind.config = {
 </div>
 
 <!-- ============================================================
-     MODAL: BOOST
+     MODAL: ADD TARGET (akun yang mau ditambahi follower)
+     ============================================================ -->
+<div id="modalAddTarget" class="modal-wrapper hidden">
+  <div class="modal-backdrop" data-close-modal="modalAddTarget"></div>
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Daftarkan Akun Target</h3>
+      <button class="modal-close" data-close-modal="modalAddTarget">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="modal-body space-y-4">
+      <p style="font-size:13px;color:var(--ink-3);margin:0;line-height:1.5">
+        Akun ini akan muncul di feed user lain untuk ditambahi follower.
+      </p>
+
+      <div>
+        <label class="form-label">Platform</label>
+        <div id="targetPlatformGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px"></div>
+      </div>
+
+      <div>
+        <label class="form-label">Username (tanpa @)</label>
+        <input id="targetUsername" type="text" placeholder="username" class="form-input" style="font-family:ui-monospace,monospace">
+      </div>
+
+      <div>
+        <label class="form-label">Link Profil Lengkap</label>
+        <input id="targetUrl" type="url" placeholder="https://instagram.com/username" class="form-input">
+      </div>
+
+      <div id="addTargetStatus" class="status-msg hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnSaveTarget" class="btn-primary">Simpan Akun Target</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: REQUEST FOLLOWERS
+     ============================================================ -->
+<div id="modalRequest" class="modal-wrapper hidden">
+  <div class="modal-backdrop" data-close-modal="modalRequest"></div>
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Minta Follower</h3>
+      <button class="modal-close" data-close-modal="modalRequest">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="modal-body space-y-4">
+      <div style="padding:16px;border-radius:12px;background:var(--green-50);border:1px solid var(--green-100)">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green-600);margin-bottom:6px">Akun Target</div>
+        <div id="requestTargetName" style="font-weight:700;font-size:14px;color:var(--ink)">@—</div>
+      </div>
+
+      <div>
+        <label class="form-label">Jumlah Follower</label>
+        <input id="requestQuantity" type="number" min="1" max="1000" value="10" class="form-input">
+        <p style="font-size:11.5px;color:var(--ink-3);margin-top:6px">
+          Kreditmu: <b id="requestMyCredits">—</b> • Biaya: <b id="requestCost">10 kredit</b>
+        </p>
+      </div>
+
+      <div class="info-box info">
+        <i data-lucide="info"></i>
+        <span>Setiap 1 kredit = 1 follower nyata dari user lain. Kredit langsung dipotong saat request dibuat.</span>
+      </div>
+
+      <div id="requestStatus" class="status-msg hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnConfirmRequest" class="btn-primary">
+        <i data-lucide="send" style="width:16px;height:16px"></i> Konfirmasi
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: BOOST (kalau masih dipakai)
      ============================================================ -->
 <div id="modalBoost" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalBoost"></div>
   <div class="modal-card">
     <div class="modal-header">
-      <h3 class="modal-title">Boost Akun Tumbal</h3>
+      <h3 class="modal-title">Boost Akun</h3>
       <button class="modal-close" data-close-modal="modalBoost">
         <i data-lucide="x"></i>
       </button>
     </div>
     <div class="modal-body space-y-4">
       <div style="padding:16px;border-radius:12px;background:var(--amber-50);border:1px solid #fde68a">
-        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#b45309;margin-bottom:6px">Akun yang Di-boost</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#b45309;margin-bottom:6px">Akun</div>
         <div id="boostTargetName" style="font-weight:700;font-size:14px;color:var(--ink)">@—</div>
       </div>
       <div>
@@ -675,7 +685,7 @@ tailwind.config = {
       <div id="purchaseSummary" style="padding:18px;border-radius:12px;background:var(--surface-2)">—</div>
       <div class="info-box warn">
         <i data-lucide="alert-circle"></i>
-        <span>Transfer dulu ke rekening di tab Toko. Setelah itu submit form ini.</span>
+        <span>Transfer dulu ke rekening. Setelah itu submit form ini.</span>
       </div>
       <div>
         <label class="form-label">Metode Transfer</label>
@@ -714,7 +724,7 @@ tailwind.config = {
 <script src="assets/js/profile.js"></script>
 <script src="assets/js/feed.js"></script>
 <script src="assets/js/accounts.js"></script>
-<script src="assets/js/requests.js"></script>
+<script src="assets/js/targets.js"></script>
 <script src="assets/js/claims.js"></script>
 <script src="assets/js/boost.js"></script>
 <script src="assets/js/history.js"></script>
