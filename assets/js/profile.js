@@ -1,5 +1,6 @@
 /* ============================================================
    PROFILE — Load data profil user
+   + Auto signout kalau user banned/dihapus
    ============================================================ */
 
 (function() {
@@ -15,7 +16,27 @@
       .single();
 
     if (error) {
+      // ⭐ Kalau profile tidak ada (dihapus admin) → force logout
+      if (error.code === 'PGRST116') {
+        console.warn('[Profile] Akun dihapus admin, force logout');
+        try { await sb.auth.signOut(); } catch (e) {}
+        localStorage.removeItem('kasir:authCache');
+        sessionStorage.removeItem('sf_admin_key');
+        setTimeout(() => location.reload(), 800);
+        return;
+      }
       console.error('[Profile]', error);
+      return;
+    }
+
+    // ⭐ Kalau user banned → force logout
+    if (data.is_banned === true) {
+      console.warn('[Profile] Akun di-ban, force logout');
+      try { await sb.auth.signOut(); } catch (e) {}
+      localStorage.removeItem('kasir:authCache');
+      sessionStorage.removeItem('sf_admin_key');
+      if (window.App && App.toast) App.toast('Akun kamu di-ban oleh admin', 'error', 4000);
+      setTimeout(() => location.reload(), 1500);
       return;
     }
 
@@ -24,10 +45,10 @@
     const displayName = data.display_name || data.username || 'User';
     const initial = displayName[0].toUpperCase();
 
-    // ---------- HEADER ----------
-    $('headerUsername').textContent = displayName;
+    // HEADER
+    const headerUsernameEl = $('headerUsername');
+    if (headerUsernameEl) headerUsernameEl.textContent = displayName;
 
-    // Greeting berdasarkan jam
     const hour = new Date().getHours();
     const greeting = hour < 11 ? 'Selamat pagi ☀️'
                     : hour < 15 ? 'Selamat siang 🌤️'
@@ -36,11 +57,10 @@
     const greetEl = document.getElementById('headerGreeting');
     if (greetEl) greetEl.textContent = greeting;
 
-    // Avatar letter
     const avatarLetter = document.getElementById('headerAvatarLetter');
     if (avatarLetter) avatarLetter.textContent = initial;
 
-    // ---------- STATS ROW (4 kartu) ----------
+    // STATS ROW
     const creditsEl = $('creditsValue');
     if (creditsEl) creditsEl.textContent = data.credits ?? 0;
 
@@ -50,7 +70,7 @@
     const receivedEl = $('statReceived');
     if (receivedEl) receivedEl.textContent = data.total_follows_received ?? 0;
 
-    // ---------- PROFILE PAGE ----------
+    // PROFILE PAGE
     const profileNameEl = $('profileName');
     if (profileNameEl) profileNameEl.textContent = displayName;
 
@@ -63,7 +83,7 @@
     const profileStatCreditsEl = $('profileStatCredits');
     if (profileStatCreditsEl) profileStatCreditsEl.textContent = data.credits ?? 0;
 
-    // ---------- COUNTER AKUN AKTIF ----------
+    // COUNTER AKUN
     try {
       const { count } = await sb
         .from('social_accounts')
