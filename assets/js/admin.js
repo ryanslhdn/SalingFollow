@@ -1,5 +1,5 @@
 /* ============================================================
-   ADMIN — Panel admin (dengan search, filter, hapus)
+   ADMIN — Panel admin (dengan hapus user permanen)
    ============================================================ */
 
 (function() {
@@ -164,9 +164,6 @@
     icon();
   }
 
-    icon();
-  }
-
   /* ---------- ADJUST CREDIT ---------- */
   async function adminAdjustCredits(userId, sign) {
     const user = state.adminUsersCache.find(u => u.id === userId);
@@ -220,7 +217,7 @@
       title: currentlyBanned ? `Unban ${uname}?` : `Ban ${uname}?`,
       desc: currentlyBanned
         ? 'User akan bisa aktif kembali di sistem.'
-        : 'User tidak akan bisa ikut aktivitas apapun.',
+        : 'User tidak akan bisa login dan ikut aktivitas apapun.',
       okText: currentlyBanned ? 'Ya, Unban' : 'Ya, Ban',
       cancelText: 'Batal',
       danger: !currentlyBanned,
@@ -248,10 +245,9 @@
     const uname = `@${user.username}`;
     const isBanned = user.is_banned;
 
-    // Konfirmasi 1
     const ok1 = await App.confirm({
       title: 'Hapus User Permanen?',
-      desc: `Akun ${uname} (${user.display_name || 'tanpa nama'}) akan dihapus SELAMANYA beserta semua data: profil, akun sosmed, klaim, request, bukti transfer, dan riwayat kredit.\n\nTindakan ini TIDAK BISA dibatalkan.`,
+      desc: `Akun ${uname} (${user.display_name || 'tanpa nama'}) akan dihapus SELAMANYA beserta semua data: profil, akun sosmed, klaim, request, bukti transfer, dan riwayat kredit. Tindakan ini tidak bisa dibatalkan.`,
       okText: 'Lanjut',
       cancelText: 'Batal',
       danger: true,
@@ -259,7 +255,6 @@
     });
     if (!ok1) return;
 
-    // Konfirmasi 2 — kalau user TIDAK banned, warning lebih tegas
     if (!isBanned) {
       const ok2 = await App.confirm({
         title: `⚠ User ${uname} belum di-ban`,
@@ -272,7 +267,6 @@
       if (!ok2) return;
     }
 
-    // Konfirmasi 3 — ketik ulang username
     const typed = await App.prompt({
       title: 'Konfirmasi Terakhir',
       desc: `Ketik username "${user.username}" (tanpa @) untuk konfirmasi hapus permanen`,
@@ -288,9 +282,10 @@
 
     toast('Menghapus data...', 'info', 2000);
 
-    // 1. Hapus file-file di storage
+    // Hapus file di storage (best effort)
     try {
-      for (const bucket of ['payment-proofs', 'follow-proofs', 'product-photos']) {
+      const buckets = ['payment-proofs', 'follow-proofs', 'product-photos'];
+      for (const bucket of buckets) {
         try {
           const { data: files } = await sb.storage.from(bucket).list(userId);
           if (files && files.length > 0) {
@@ -306,7 +301,7 @@
       console.warn('[Delete user storage]', e);
     }
 
-    // 2. Hapus dari auth.users → cascade semua tabel
+    // Hapus dari auth.users → cascade ke semua tabel
     try {
       const { data, error } = await sb.rpc('admin_delete_user', {
         p_key: ADMIN_KEY(),
@@ -590,7 +585,7 @@
     await Promise.all([loadAdminPurchases(), loadAdminStats()]);
   }
 
-  /* ---------- DELETE SINGLE ---------- */
+  /* ---------- DELETE SINGLE PURCHASE ---------- */
   async function deletePurchase(pid) {
     const ok = await App.confirm({
       title: 'Hapus Pembelian Ini?',
@@ -722,7 +717,7 @@
   }
 
   /* ============================================================
-     BINDING — search & filter
+     BINDING
      ============================================================ */
   function bindSearchAndFilter() {
     const userSearch = $('adminUserSearch');
