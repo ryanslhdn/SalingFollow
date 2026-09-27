@@ -1,5 +1,5 @@
 /* ============================================================
-   STORE — Beli kredit + Resubmit bukti
+   STORE — Beli kredit + Resubmit bukti + Status toko
    ============================================================ */
 
 (function() {
@@ -18,6 +18,30 @@
      LOAD STORE
      ============================================================ */
   async function loadStore() {
+    // ---------- CEK STATUS TOKO ----------
+    try {
+      const { data: status, error } = await sb.rpc('get_store_status');
+      if (!error && status) {
+        const closedEl = $('storeClosedState');
+        const contentEl = $('storeContent');
+
+        if (!status.open) {
+          if (closedEl) closedEl.classList.remove('hidden');
+          if (contentEl) contentEl.classList.add('hidden');
+          const msgEl = $('storeClosedMsgDisplay');
+          if (msgEl) msgEl.textContent = status.message || 'Toko sedang tutup. Coba lagi nanti.';
+          icon();
+          return;
+        } else {
+          if (closedEl) closedEl.classList.add('hidden');
+          if (contentEl) contentEl.classList.remove('hidden');
+        }
+      }
+    } catch (e) {
+      console.warn('[Store] Status check failed', e);
+    }
+
+    // ---------- PACKAGES ----------
     const { data: pkgs, error: pkgErr } = await sb
       .from('credit_packages')
       .select('*')
@@ -96,7 +120,6 @@
           const st = stMap[p.status] || stMap.pending;
           const needsReupload = p.status === 'need_reupload';
 
-          // Bukti transfer preview
           const proofHtml = p.proof_url ? `
             <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:8px">
               <span style="font-size:11px;color:var(--ink-3);font-weight:600">Bukti:</span>
@@ -105,7 +128,6 @@
             </div>
           ` : '';
 
-          // Pesan admin
           const adminNoteHtml = p.admin_note ? `
             <div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe">
               <div style="font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1e40af;margin-bottom:3px">
@@ -115,7 +137,6 @@
             </div>
           ` : '';
 
-          // Tombol upload ulang
           const reuploadBtnHtml = (needsReupload || p.status === 'rejected') ? `
             <button onclick="App.openResubmitModal('${esc(p.id)}')"
                     style="width:100%;margin-top:10px;padding:10px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-weight:800;font-size:12.5px;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">
@@ -407,7 +428,7 @@
   }
 
   /* ============================================================
-     RESUBMIT MODAL — user upload ulang bukti
+     RESUBMIT MODAL
      ============================================================ */
   function openResubmitModal(purchaseId) {
     state.currentResubmitId = purchaseId;
@@ -612,6 +633,13 @@
       }
     }
   }
+
+  /* ============================================================
+     BINDING
+     ============================================================ */
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btnReloadStore')?.addEventListener('click', loadStore);
+  });
 
   /* ============================================================
      EXPOSE
