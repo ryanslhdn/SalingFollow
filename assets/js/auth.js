@@ -92,13 +92,12 @@
 
       // === USER LOGIN ===
       loginBtn.disabled = true;
-      loginBtn.textContent = 'Memverifikasi...';
+      loginBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite"></span> Memverifikasi...</span>';
       status('loginStatus', 'warn', 'Memverifikasi...');
 
       try {
         let email = identifier.toLowerCase();
 
-        // Kalau bukan format email → lookup via username
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
         if (!isEmail) {
           status('loginStatus', 'warn', 'Mencari akun...');
@@ -107,9 +106,7 @@
           });
 
           if (lookupErr) throw lookupErr;
-          if (!foundEmail) {
-            throw new Error('Username tidak ditemukan');
-          }
+          if (!foundEmail) throw new Error('Username tidak ditemukan');
           email = foundEmail.toLowerCase();
         }
 
@@ -117,14 +114,24 @@
         const { error } = await sb.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
-        status('loginStatus', 'success', '✅ Berhasil!');
+        // ⭐ SUKSES — TUTUP MODAL & LOGIN
+        status('loginStatus', 'success', '✅ Berhasil! Mengalihkan...');
+
+        // Tutup modal otomatis
+        if (typeof closeAuthModal === 'function') closeAuthModal();
+
+        // Reset button state
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = 'Masuk <i data-lucide="arrow-right" style="width:16px;height:16px"></i>';
+        if (window.lucide) window.lucide.createIcons();
+
       } catch (e) {
         console.error('[Login]', e);
         let msg = e.message || 'Gagal login';
         if (msg.toLowerCase().includes('invalid')) msg = 'Email/username atau password salah';
         status('loginStatus', 'error', msg);
         loginBtn.disabled = false;
-        loginBtn.innerHTML = '<i data-lucide="log-in" class="w-4 h-4 inline mr-1"></i> Masuk';
+        loginBtn.innerHTML = 'Masuk <i data-lucide="arrow-right" style="width:16px;height:16px"></i>';
         icon();
       }
     });
@@ -147,7 +154,7 @@
       if (password.length < 6)                       return status('registerStatus','error','Password min 6 karakter');
 
       registerBtn.disabled = true;
-      registerBtn.textContent = 'Mendaftar...';
+      registerBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite"></span> Mendaftar...</span>';
       status('registerStatus','warn','Membuat akun...');
 
       try {
@@ -160,13 +167,21 @@
         status('registerStatus','success','✅ Akun dibuat! Login otomatis...');
         const { error: e2 } = await sb.auth.signInWithPassword({ email, password });
         if (e2) throw e2;
+
+        // ⭐ SUKSES — TUTUP MODAL
+        if (typeof closeAuthModal === 'function') closeAuthModal();
+
+        registerBtn.disabled = false;
+        registerBtn.innerHTML = 'Daftar Gratis <i data-lucide="arrow-right" style="width:16px;height:16px"></i>';
+        if (window.lucide) window.lucide.createIcons();
+
       } catch (e) {
         console.error('[Register]', e);
         let msg = e.message || 'Gagal daftar';
         if (msg.toLowerCase().includes('already')) msg = 'Email sudah terdaftar';
         status('registerStatus','error', msg);
         registerBtn.disabled = false;
-        registerBtn.innerHTML = '<i data-lucide="user-plus" class="w-4 h-4 inline mr-1"></i> Daftar Gratis';
+        registerBtn.innerHTML = 'Daftar Gratis <i data-lucide="arrow-right" style="width:16px;height:16px"></i>';
         icon();
       }
     });
