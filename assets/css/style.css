@@ -1357,3 +1357,27 @@ button {
 .feed-btn:disabled svg {
   opacity: .6;
 }
+.acc-subtab.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--sh-sm);
+}
+
+.accTypeBtn.active {
+  border-color: var(--green-500) !important;
+  background: var(--green-50) !important;
+  box-shadow: 0 0 0 3px rgba(16,185,129,.1);
+}
+
+.acc-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.acc-type-badge.tumbal { background: #dbeafe; color: #1e40af; }
+.acc-type-badge.main   { background: #fef3c7; color: #b45309; }
