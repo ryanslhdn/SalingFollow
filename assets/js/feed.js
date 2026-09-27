@@ -32,25 +32,25 @@
     }
 
     empty.classList.add('hidden');
-    list.innerHTML = state.feed.map((a, i) => {
-      const p = PLATFORMS[a.platform] || { name:a.platform, icon:'globe', color:'#64748b' };
-      return `
-        <div class="item-card" style="animation-delay:${i * 30}ms">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 rounded-2xl grid place-items-center flex-shrink-0" style="background:${p.color}">
-              <i data-lucide="${p.icon}" class="w-5 h-5 text-white"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="font-black text-sm truncate">@${esc(a.username)}</div>
-              <div class="text-[11px] text-slate-500 font-semibold">${p.name} • dari @${esc(a.owner_username)}</div>
-            </div>
-            ${a.is_boosted ? '<span class="px-2 py-1 rounded-lg bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-wider flex-shrink-0">🚀 BOOST</span>' : ''}
-          </div>
-          <button data-claim-target="${esc(a.id)}" class="w-full py-3 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white font-black text-sm shadow-lg shadow-brand-500/30 active:scale-[.98] transition-transform">
-            <i data-lucide="user-plus" class="w-4 h-4 inline mr-1"></i> Follow & Klaim +1 Kredit
-          </button>
-        </div>`;
-    }).join('');
+   list.innerHTML = state.feed.map((a, i) => {
+     const p = PLATFORMS[a.platform] || { name:a.platform, icon:'globe', color:'#64748b' };
+     return `
+       <div class="feed-card" style="animation-delay:${i * 50}ms">
+         <div class="feed-head">
+           <div class="feed-avatar" style="background:${p.color}">
+             <i data-lucide="${p.icon}"></i>
+           </div>
+           <div class="feed-info">
+             <div class="feed-username">@${esc(a.username)}</div>
+             <div class="feed-meta">${p.name} • dari @${esc(a.owner_username)}</div>
+           </div>
+           ${a.is_boosted ? '<span class="boost-badge">🚀 BOOST</span>' : ''}
+         </div>
+         <button data-claim-target="${esc(a.id)}" class="feed-btn">
+           <i data-lucide="user-plus"></i> Follow & Klaim +1 Kredit
+         </button>
+       </div>`;
+   }).join('');
 
     list.querySelectorAll('[data-claim-target]').forEach(btn => {
       btn.addEventListener('click', () => App.chooseFollowerAndClaim(btn.dataset.claimTarget));
