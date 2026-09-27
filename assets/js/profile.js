@@ -21,21 +21,49 @@
 
     App.state.profile = data;
 
-    // Header
-    $('headerUsername').textContent = data.display_name || data.username;
+    const displayName = data.display_name || data.username || 'User';
+    const initial = displayName[0].toUpperCase();
 
-    // Stats row (di atas, 4 kartu)
-    $('creditsValue').textContent = data.credits;
-    $('statGiven').textContent = data.total_follows_given;
-    $('statReceived').textContent = data.total_follows_received;
+    // ---------- HEADER ----------
+    $('headerUsername').textContent = displayName;
 
-    // Profile page
-    $('profileName').textContent = data.display_name || data.username;
-    $('profileUsername').textContent = '@' + data.username;
-    $('profileAvatar').textContent = (data.display_name || data.username || '?')[0].toUpperCase();
-    $('profileStatCredits').textContent = data.credits;
+    // Greeting berdasarkan jam
+    const hour = new Date().getHours();
+    const greeting = hour < 11 ? 'Selamat pagi ☀️'
+                    : hour < 15 ? 'Selamat siang 🌤️'
+                    : hour < 19 ? 'Selamat sore 🌆'
+                    : 'Selamat malam 🌙';
+    const greetEl = document.getElementById('headerGreeting');
+    if (greetEl) greetEl.textContent = greeting;
 
-    // Counter akun aktif
+    // Avatar letter
+    const avatarLetter = document.getElementById('headerAvatarLetter');
+    if (avatarLetter) avatarLetter.textContent = initial;
+
+    // ---------- STATS ROW (4 kartu) ----------
+    const creditsEl = $('creditsValue');
+    if (creditsEl) creditsEl.textContent = data.credits ?? 0;
+
+    const givenEl = $('statGiven');
+    if (givenEl) givenEl.textContent = data.total_follows_given ?? 0;
+
+    const receivedEl = $('statReceived');
+    if (receivedEl) receivedEl.textContent = data.total_follows_received ?? 0;
+
+    // ---------- PROFILE PAGE ----------
+    const profileNameEl = $('profileName');
+    if (profileNameEl) profileNameEl.textContent = displayName;
+
+    const profileUsernameEl = $('profileUsername');
+    if (profileUsernameEl) profileUsernameEl.textContent = '@' + (data.username || 'user');
+
+    const profileAvatarEl = $('profileAvatar');
+    if (profileAvatarEl) profileAvatarEl.textContent = initial;
+
+    const profileStatCreditsEl = $('profileStatCredits');
+    if (profileStatCreditsEl) profileStatCreditsEl.textContent = data.credits ?? 0;
+
+    // ---------- COUNTER AKUN AKTIF ----------
     try {
       const { count } = await sb
         .from('social_accounts')
@@ -47,6 +75,8 @@
     } catch (e) {
       console.warn('[Profile] Count accounts failed', e);
     }
+
+    if (window.lucide) window.lucide.createIcons();
   }
 
   App.loadProfile = loadProfile;
