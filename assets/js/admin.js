@@ -1,5 +1,5 @@
 /* ============================================================
-   ADMIN — Panel admin (dengan hapus pembelian + cleanup)
+   ADMIN — Panel admin (dengan search & filter)
    ============================================================ */
 
 (function() {
@@ -7,17 +7,22 @@
 
   const ADMIN_KEY = () => sessionStorage.getItem('sf_admin_key');
 
+  // State
+  state.adminUsersCache = [];
+  state.adminPurchasesCache = [];
+  state.adminUserQuery = '';
+  state.adminPurchaseQuery = '';
+  state.adminPurchaseStatus = '';
+
   /* ============================================================
-     HELPER — hapus file dari storage berdasarkan URL publik
+     HELPER — hapus file dari storage
      ============================================================ */
   async function deleteProofFileFromStorage(proofUrl) {
     if (!proofUrl) return;
     try {
-      // URL format: .../storage/v1/object/public/payment-proofs/<path>
       const match = proofUrl.match(/\/payment-proofs\/(.+)$/);
       if (!match) return;
       const path = decodeURIComponent(match[1]);
-
       const { error } = await sb.storage.from('payment-proofs').remove([path]);
       if (error) console.warn('[Storage delete]', error);
     } catch (e) {
@@ -39,7 +44,7 @@
   }
 
   /* ============================================================
-     USERS
+     USERS — load & filter
      ============================================================ */
   async function loadAdminUsers() {
     const wrap = $('adminUsersList');
@@ -59,19 +64,48 @@
       return;
     }
 
-    if (!data?.length) {
-      wrap.innerHTML = `
-        <div class="empty-state" style="padding:32px 24px">
-          <div class="empty-icon" style="width:56px;height:56px">
-            <i data-lucide="users" style="width:24px;height:24px"></i>
-          </div>
-          <p class="empty-desc">Belum ada user</p>
-        </div>`;
+    state.adminUsersCache = data || [];
+    renderAdminUsers();
+  }
+
+  function renderAdminUsers() {
+    const wrap = $('adminUsersList');
+    if (!wrap) return;
+
+    let rows = state.adminUsersCache;
+    const q = state.adminUserQuery.trim().toLowerCase();
+
+    if (q) {
+      rows = rows.filter(u =>
+        (u.display_name || '').toLowerCase().includes(q) ||
+        (u.username || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (!rows.length) {
+      if (q) {
+        wrap.innerHTML = `
+          <div class="empty-state" style="padding:32px 24px">
+            <div class="empty-icon" style="width:56px;height:56px">
+              <i data-lucide="search-x" style="width:24px;height:24px"></i>
+            </div>
+            <h3 class="empty-title" style="font-size:14px">Tidak ditemukan</h3>
+            <p class="empty-desc">Tidak ada user yang cocok dengan "${esc(state.adminUserQuery)}"</p>
+          </div>`;
+      } else {
+        wrap.innerHTML = `
+          <div class="empty-state" style="padding:32px 24px">
+            <div class="empty-icon" style="width:56px;height:56px">
+              <i data-lucide="users" style="width:24px;height:24px"></i>
+            </div>
+            <p class="empty-desc">Belum ada user</p>
+          </div>`;
+      }
       icon();
       return;
     }
 
-    wrap.innerHTML = data.map((u, i) => `
+    wrap.innerHTML = rows.map((u, i) => `
       <div class="admin-card" style="padding:16px;margin-bottom:10px;animation:fadeUp .35s ease backwards;animation-delay:${i * 30}ms">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
           <div style="width:44px;height:44px;border-radius:12px;background:${u.is_banned ? '#ef4444' : '#10b981'};color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px;flex-shrink:0">
@@ -136,11 +170,14 @@
 
   /* ---------- ADJUST CREDIT ---------- */
   async function adminAdjustCredits(userId, sign) {
+    const user = state.adminUsersCache.find(u => u.id === userId);
+    const uname = user ? `@${user.username}` : 'user ini';
+
     const ok = await App.confirm({
       title: sign > 0 ? 'Tambah Kredit' : 'Kurangi Kredit',
       desc: sign > 0
-        ? 'Jumlah kredit yang akan ditambahkan ke user ini.'
-        : 'Jumlah kredit yang akan dikurangi dari user ini.',
+        ? `Jumlah kredit yang akan ditambahkan ke ${uname}.`
+        : `Jumlah kredit yang akan dikurangi dari ${uname}.`,
       okText: 'Lanjut',
       cancelText: 'Batal',
       danger: sign < 0,
@@ -150,7 +187,7 @@
 
     const amt = await App.prompt({
       title: sign > 0 ? 'Tambah Kredit' : 'Kurangi Kredit',
-      desc: 'Masukkan jumlah kredit',
+      desc: `Kredit untuk ${uname}`,
       placeholder: '10',
       defaultValue: '10',
       type: 'number',
@@ -171,14 +208,17 @@
 
     if (error) return toast(error.message, 'error');
 
-    toast(`Kredit ${sign > 0 ? '+' : ''}${amount}`, 'success');
+    toast(`Kredit ${sign > 0 ? '+' : ''}${amount} ke ${uname}`, 'success');
     await Promise.all([loadAdminUsers(), loadAdminStats()]);
   }
 
   /* ---------- TOGGLE BAN ---------- */
   async function adminToggleBan(userId, currentlyBanned) {
+    const user = state.adminUsersCache.find(u => u.id === userId);
+    const uname = user ? `@${user.username}` : 'user ini';
+
     const ok = await App.confirm({
-      title: currentlyBanned ? 'Unban user ini?' : 'Ban user ini?',
+      title: currentlyBanned ? `Unban ${uname}?` : `Ban ${uname}?`,
       desc: currentlyBanned
         ? 'User akan bisa aktif kembali di sistem.'
         : 'User tidak akan bisa ikut aktivitas apapun.',
@@ -202,7 +242,7 @@
   }
 
   /* ============================================================
-     PURCHASES
+     PURCHASES — load & filter
      ============================================================ */
   async function loadAdminPurchases() {
     const wrap = $('adminPurchasesList');
@@ -222,25 +262,75 @@
       return;
     }
 
-    if (!data?.length) {
+    state.adminPurchasesCache = data || [];
+    renderAdminPurchases();
+  }
+
+  function renderAdminPurchases() {
+    const wrap = $('adminPurchasesList');
+    if (!wrap) return;
+
+    let rows = state.adminPurchasesCache;
+    const q = state.adminPurchaseQuery.trim().toLowerCase();
+    const st = state.adminPurchaseStatus;
+
+    // Filter status
+    if (st) rows = rows.filter(p => p.status === st);
+
+    // Filter search
+    if (q) {
+      rows = rows.filter(p =>
+        (p.display_name || '').toLowerCase().includes(q) ||
+        (p.username || '').toLowerCase().includes(q) ||
+        (p.package_name || '').toLowerCase().includes(q) ||
+        (p.buyer_note || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Hitung counts dari SEMUA data (bukan filtered) — untuk badge tombol filter
+    const counts = {
+      all:           state.adminPurchasesCache.length,
+      pending:       state.adminPurchasesCache.filter(p => p.status === 'pending').length,
+      approved:      state.adminPurchasesCache.filter(p => p.status === 'approved').length,
+      rejected:      state.adminPurchasesCache.filter(p => p.status === 'rejected').length,
+      need_reupload: state.adminPurchasesCache.filter(p => p.status === 'need_reupload').length,
+    };
+
+    // Update label tombol filter
+    const filterWrap = $('adminPurchaseFilter');
+    if (filterWrap) {
+      filterWrap.querySelectorAll('[data-status]').forEach(b => {
+        const s = b.dataset.status;
+        const isActive = s === st;
+        const label = s === '' ? 'Semua' :
+                      s === 'pending' ? 'Pending' :
+                      s === 'need_reupload' ? 'Upload Ulang' :
+                      s === 'approved' ? 'Approved' :
+                      s === 'rejected' ? 'Rejected' : s;
+        const count = counts[s] !== undefined ? counts[s] : 0;
+        b.textContent = `${label} (${count})`;
+        b.style.background = isActive ? 'linear-gradient(135deg,#10b981,#059669)' : '#fff';
+        b.style.color = isActive ? '#fff' : 'var(--ink-2)';
+        b.style.borderColor = isActive ? 'transparent' : 'var(--line)';
+      });
+    }
+
+    if (!rows.length) {
+      const msg = q
+        ? `Tidak ada yang cocok dengan "${esc(q)}"`
+        : st
+          ? `Tidak ada pembelian dengan status "${esc(st)}"`
+          : 'Belum ada pembelian';
       wrap.innerHTML = `
         <div class="empty-state" style="padding:32px 24px">
           <div class="empty-icon" style="width:56px;height:56px">
-            <i data-lucide="shopping-bag" style="width:24px;height:24px"></i>
+            <i data-lucide="search-x" style="width:24px;height:24px"></i>
           </div>
-          <p class="empty-desc">Belum ada pembelian</p>
+          <p class="empty-desc">${msg}</p>
         </div>`;
       icon();
       return;
     }
-
-    // Hitung jumlah per status untuk badge tombol bulk
-    const counts = {
-      pending:       data.filter(p => p.status === 'pending').length,
-      approved:      data.filter(p => p.status === 'approved').length,
-      rejected:      data.filter(p => p.status === 'rejected').length,
-      need_reupload: data.filter(p => p.status === 'need_reupload').length,
-    };
 
     const stMap = {
       pending:       { label: 'Pending',            style: 'background:#fffbeb;color:#b45309' },
@@ -249,23 +339,30 @@
       need_reupload: { label: 'Minta Upload Ulang', style: 'background:#dbeafe;color:#1e40af' },
     };
 
-    // Toolbar bulk delete
-    const toolbar = `
-      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;padding:12px;background:var(--surface-2);border-radius:10px">
-        <div style="flex:1;min-width:100%;font-size:11.5px;color:var(--ink-3);font-weight:600;margin-bottom:4px">
-          Hapus massal:
+    // Toolbar bulk delete (hanya kalau approved/rejected ada)
+    let toolbar = '';
+    if (counts.approved > 0 || counts.rejected > 0) {
+      toolbar = `
+        <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;padding:12px;background:var(--surface-2);border-radius:10px">
+          <div style="flex:1;min-width:100%;font-size:11.5px;color:var(--ink-3);font-weight:600;margin-bottom:4px">
+            Hapus massal:
+          </div>
+          ${counts.approved > 0 ? `
+            <button data-bulk="approved" style="flex:1;min-width:100px;padding:9px;border-radius:9px;background:#ecfdf5;color:#047857;font-weight:700;font-size:12px;border:1px solid #a7f3d0;font-family:inherit;cursor:pointer">
+              Hapus Approved (${counts.approved})
+            </button>
+          ` : ''}
+          ${counts.rejected > 0 ? `
+            <button data-bulk="rejected" style="flex:1;min-width:100px;padding:9px;border-radius:9px;background:#fef2f2;color:#b91c1c;font-weight:700;font-size:12px;border:1px solid #fecaca;font-family:inherit;cursor:pointer">
+              Hapus Rejected (${counts.rejected})
+            </button>
+          ` : ''}
         </div>
-        <button data-bulk="approved" style="flex:1;min-width:100px;padding:9px;border-radius:9px;background:#ecfdf5;color:#047857;font-weight:700;font-size:12px;border:1px solid #a7f3d0;font-family:inherit;cursor:pointer">
-          Hapus Approved (${counts.approved})
-        </button>
-        <button data-bulk="rejected" style="flex:1;min-width:100px;padding:9px;border-radius:9px;background:#fef2f2;color:#b91c1c;font-weight:700;font-size:12px;border:1px solid #fecaca;font-family:inherit;cursor:pointer">
-          Hapus Rejected (${counts.rejected})
-        </button>
-      </div>
-    `;
+      `;
+    }
 
-    const cards = data.map((p, i) => {
-      const st = stMap[p.status] || stMap.pending;
+    const cards = rows.map((p, i) => {
+      const stObj = stMap[p.status] || stMap.pending;
 
       const proofHtml = p.proof_url ? `
         <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">
@@ -293,7 +390,6 @@
         </div>
       ` : '';
 
-      // Tombol aksi
       let actionsHtml = '';
       if (p.status === 'pending' || p.status === 'need_reupload') {
         actionsHtml = `
@@ -311,7 +407,6 @@
         `;
       }
 
-      // Tombol hapus selalu ada
       actionsHtml += `
         <div style="margin-top:8px">
           <button data-del="${p.id}" style="width:100%;padding:9px;border-radius:9px;background:transparent;color:#b91c1c;font-weight:700;font-size:12px;border:1px dashed #fecaca;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
@@ -334,8 +429,8 @@
                 ${formatDateTime(p.created_at)}
               </div>
             </div>
-            <span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;${st.style}">
-              ${st.label}
+            <span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;${stObj.style}">
+              ${stObj.label}
             </span>
           </div>
 
@@ -355,7 +450,6 @@
 
     wrap.innerHTML = toolbar + cards;
 
-    // Binding
     wrap.querySelectorAll('[data-appr]').forEach(b =>
       b.addEventListener('click', () => reviewPurchase(b.dataset.appr, true)));
     wrap.querySelectorAll('[data-rej]').forEach(b =>
@@ -424,11 +518,11 @@
     await Promise.all([loadAdminPurchases(), loadAdminStats()]);
   }
 
-  /* ---------- DELETE SINGLE PURCHASE ---------- */
+  /* ---------- DELETE SINGLE ---------- */
   async function deletePurchase(pid) {
     const ok = await App.confirm({
       title: 'Hapus Pembelian Ini?',
-      desc: 'Data pembelian dan file bukti transfer akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.',
+      desc: 'Data pembelian dan file bukti transfer akan dihapus permanen.',
       okText: 'Ya, Hapus',
       cancelText: 'Batal',
       danger: true,
@@ -443,10 +537,7 @@
       });
       if (error) throw error;
 
-      // Hapus file bukti dari storage (kalau ada)
-      if (data?.proof_url) {
-        await deleteProofFileFromStorage(data.proof_url);
-      }
+      if (data?.proof_url) await deleteProofFileFromStorage(data.proof_url);
 
       toast('Pembelian dihapus', 'success');
       await Promise.all([loadAdminPurchases(), loadAdminStats()]);
@@ -461,7 +552,7 @@
     const label = status === 'approved' ? 'Approved' : 'Rejected';
     const ok = await App.confirm({
       title: `Hapus Semua ${label}?`,
-      desc: `Semua pembelian dengan status "${label}" akan dihapus permanen beserta file bukti transfernya.`,
+      desc: `Semua pembelian dengan status "${label}" akan dihapus permanen beserta file buktinya.`,
       okText: 'Ya, Hapus Semua',
       cancelText: 'Batal',
       danger: true,
@@ -476,13 +567,10 @@
       });
       if (error) throw error;
 
-      // Hapus semua file dari storage
       const urls = data?.urls || [];
       if (urls.length > 0) {
         toast(`Menghapus ${urls.length} file bukti...`, 'info', 2000);
-        for (const url of urls) {
-          await deleteProofFileFromStorage(url);
-        }
+        for (const url of urls) await deleteProofFileFromStorage(url);
       }
 
       toast(`${data?.deleted || 0} pembelian ${label} dihapus`, 'success');
@@ -561,8 +649,39 @@
   }
 
   /* ============================================================
-     BINDING
+     BINDING — search & filter
      ============================================================ */
+  function bindSearchAndFilter() {
+    // User search — real-time filter
+    const userSearch = $('adminUserSearch');
+    if (userSearch) {
+      userSearch.addEventListener('input', (e) => {
+        state.adminUserQuery = e.target.value;
+        renderAdminUsers();
+      });
+    }
+
+    // Purchase search
+    const purchaseSearch = $('adminPurchaseSearch');
+    if (purchaseSearch) {
+      purchaseSearch.addEventListener('input', (e) => {
+        state.adminPurchaseQuery = e.target.value;
+        renderAdminPurchases();
+      });
+    }
+
+    // Purchase status filter
+    const filterWrap = $('adminPurchaseFilter');
+    if (filterWrap) {
+      filterWrap.querySelectorAll('[data-status]').forEach(b => {
+        b.addEventListener('click', () => {
+          state.adminPurchaseStatus = b.dataset.status;
+          renderAdminPurchases();
+        });
+      });
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.admin-tab-btn').forEach(b => {
       b.addEventListener('click', () => switchAdminTab(b.dataset.adminTab));
@@ -585,6 +704,9 @@
       sessionStorage.removeItem('sf_admin_key');
       location.reload();
     });
+
+    // Bind search & filter
+    bindSearchAndFilter();
   });
 
   /* ============================================================
