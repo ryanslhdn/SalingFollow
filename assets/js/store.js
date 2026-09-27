@@ -1,118 +1,155 @@
 /* ============================================================
-   STORE — Beli kredit
+   STORE — Beli kredit dengan paket
    ============================================================ */
 
 (function() {
-  const { $, esc, toast, icon, status, clearStatus, openModal, closeModal, formatRupiah } = App;
+  const { $, esc, toast, icon, status, clearStatus, openModal, closeModal, formatRupiah, state } = App;
 
   async function loadStore() {
-    // Paket
-    const { data: pkgs } = await sb.from('credit_packages').select('*').eq('is_active', true).order('sort_order');
-    App.state.adminPackages = pkgs || [];
+    // ---------- PACKAGES ----------
+    const { data: pkgs, error: pkgErr } = await sb
+      .from('credit_packages')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (pkgErr) console.error('[Store] packages:', pkgErr);
+    state.adminPackages = pkgs || [];
 
     const wrap = $('storePackages');
-    if (!App.state.adminPackages.length) {
-      wrap.innerHTML = '<div class="col-span-2 text-center text-sm text-slate-500 py-8">Belum ada paket</div>';
-    } else {
-      wrap.innerHTML = App.state.adminPackages.map((p, i) => `
-        <button data-pkg="${esc(p.id)}" class="pkg-card" style="animation-delay:${i * 60}ms">
-          <div class="pkg-name">${esc(p.name)}</div>
-          <div class="pkg-credits">${p.credits}</div>
-          <div class="pkg-credits-label">kredit</div>
-          <div class="pkg-price">${formatRupiah(p.price_idr)}</div>
-        </button>
-      `).join('');
+    if (wrap) {
+      if (!state.adminPackages.length) {
+        wrap.innerHTML = `
+          <div class="info-box warn" style="grid-column:1/-1">
+            <i data-lucide="alert-triangle"></i>
+            <span>Belum ada paket kredit. Hubungi admin.</span>
+          </div>`;
+      } else {
+        wrap.innerHTML = state.adminPackages.map((p, i) => `
+          <button data-pkg="${esc(p.id)}" class="pkg-card" style="animation-delay:${i * 50}ms">
+            <div class="pkg-name">${esc(p.name)}</div>
+            <div class="pkg-credits">${p.credits}</div>
+            <div class="pkg-credits-label">kredit</div>
+            <div class="pkg-price">${formatRupiah(p.price_idr)}</div>
+          </button>
+        `).join('');
 
-      wrap.querySelectorAll('[data-pkg]').forEach(b => {
-        b.addEventListener('click', () => openPurchase(b.dataset.pkg));
-      });
+        wrap.querySelectorAll('[data-pkg]').forEach(b => {
+          b.addEventListener('click', () => openPurchase(b.dataset.pkg));
+        });
+      }
     }
 
-    // Info pembayaran
+    // ---------- PAYMENT INFO ----------
     const { data: settings } = await sb.from('app_settings').select('*');
-    const map = Object.fromEntries((settings || []).map(s => [s.key, s.value]));
-    $('storePaymentInfo').textContent = map.payment_info || 'Hubungi admin untuk info pembayaran.';
+    const settingsMap = Object.fromEntries((settings || []).map(s => [s.key, s.value]));
+    const infoEl = $('storePaymentInfo');
+    if (infoEl) {
+      infoEl.textContent = settingsMap.payment_info || 'Hubungi admin untuk info pembayaran.';
+    }
 
-    // Riwayat pembelian user
-    const { data: purchases } = await sb.from('credit_purchases')
-      .select('*').eq('user_id', App.state.user.id)
-      .order('created_at', { ascending: false }).limit(20);
-
+    // ---------- PURCHASE HISTORY ----------
     const listEl = $('myPurchases');
-    if (!purchases?.length) {
-      listEl.innerHTML = '<div class="text-center text-xs text-slate-400 py-6">Belum ada pembelian</div>';
-    } else {
-      const stMap = {
-        pending:  { label:'Menunggu', cls:'bg-amber-50 text-amber-700' },
-        approved: { label:'Disetujui', cls:'bg-emerald-50 text-emerald-700' },
-        rejected: { label:'Ditolak', cls:'bg-red-50 text-red-700' },
-      };
-      listEl.innerHTML = purchases.map((p, i) => {
-        const stMap = {
-          pending:  { label:'Menunggu',  cls:'pending' },
-          approved: { label:'Disetujui', cls:'success' },
-          rejected: { label:'Ditolak',   cls:'danger' },
-        };
-        const st = stMap[p.status] || stMap.pending;
-        return `
-          <div class="purchase-item" style="animation-delay:${i * 40}ms">
-            <div class="pi-badge">${p.credits}</div>
-            <div class="pi-body">
-              <div class="pi-name">${esc(p.package_name)}</div>
-              <div class="pi-date">${App.formatDateTime(p.created_at)}</div>
+    if (listEl) {
+      const { data: purchases } = await sb
+        .from('credit_purchases')
+        .select('*')
+        .eq('user_id', state.user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (!purchases?.length) {
+        listEl.innerHTML = `
+          <div class="empty-state" style="padding:32px 24px">
+            <div class="empty-icon" style="width:56px;height:56px">
+              <i data-lucide="receipt" style="width:24px;height:24px"></i>
             </div>
-            <div class="pi-right">
-              <div class="pi-price">${formatRupiah(p.price_idr)}</div>
-              <span class="hi-status ${st.cls}" style="margin-top:4px">${st.label}</span>
-            </div>
+            <p class="empty-desc">Belum ada pembelian</p>
           </div>`;
-      }).join('');
+      } else {
+        const stMap = {
+          pending:  { label: 'Menunggu',  cls: 'pending' },
+          approved: { label: 'Disetujui', cls: 'success' },
+          rejected: { label: 'Ditolak',   cls: 'danger' },
+        };
+
+        listEl.innerHTML = purchases.map((p, i) => {
+          const st = stMap[p.status] || stMap.pending;
+          return `
+            <div class="purchase-item" style="animation-delay:${i * 30}ms">
+              <div class="pi-badge">${p.credits}</div>
+              <div class="pi-body">
+                <div class="pi-name">${esc(p.package_name)}</div>
+                <div class="pi-date">${App.formatDateTime(p.created_at)}</div>
+              </div>
+              <div class="pi-right">
+                <div class="pi-price">${formatRupiah(p.price_idr)}</div>
+                <span class="hi-status ${st.cls}" style="margin-top:4px">${st.label}</span>
+              </div>
+            </div>`;
+        }).join('');
+      }
     }
 
     icon();
   }
 
+  /* ---------- OPEN PURCHASE MODAL ---------- */
   function openPurchase(pkgId) {
-    const pkg = App.state.adminPackages.find(p => p.id === pkgId);
+    const pkg = state.adminPackages.find(p => p.id === pkgId);
     if (!pkg) return;
-    App.state.currentPackage = pkg;
+
+    state.currentPackage = pkg;
     clearStatus('purchaseStatus');
-    $('purchaseSummary').innerHTML = `
-      <div class="text-lg font-black text-slate-800 mb-1">${pkg.credits} kredit</div>
-      <div class="text-sm text-slate-500 mb-1">${esc(pkg.name)}</div>
-      <div class="text-lg font-black text-emerald-600">${formatRupiah(pkg.price_idr)}</div>
-    `;
+
+    const summary = $('purchaseSummary');
+    if (summary) {
+      summary.innerHTML = `
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">${esc(pkg.name)}</div>
+        <div style="font-size:24px;font-weight:800;letter-spacing:-.03em;color:var(--ink);line-height:1">${pkg.credits} kredit</div>
+        <div style="font-size:15px;font-weight:700;color:var(--green-600);margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">${formatRupiah(pkg.price_idr)}</div>
+      `;
+    }
+
     openModal('modalPurchase');
   }
 
+  /* ---------- SUBMIT PURCHASE ---------- */
+  async function submitPurchase() {
+    const method = $('purchaseMethod').value;
+    const note = $('purchaseNote').value.trim() || null;
+    const pkg = state.currentPackage;
+
+    if (!pkg) return;
+
+    const btn = $('btnConfirmPurchase');
+    btn.disabled = true;
+    btn.textContent = 'Mengirim...';
+    status('purchaseStatus', 'warn', 'Mengirim...');
+
+    try {
+      const { error } = await sb.rpc('user_create_purchase', {
+        p_package_id: pkg.id,
+        p_payment_method: method,
+        p_buyer_note: note,
+      });
+      if (error) throw error;
+
+      toast('Konfirmasi terkirim! Nunggu approve admin ✅', 'success', 4000);
+      closeModal('modalPurchase');
+      await loadStore();
+    } catch (e) {
+      console.error(e);
+      status('purchaseStatus', 'error', e.message || 'Gagal mengirim');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Kirim Konfirmasi';
+    }
+  }
+
+  /* ---------- BINDING ---------- */
   document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btnConfirmPurchase')?.addEventListener('click', async () => {
-      const method = $('purchaseMethod').value;
-      const note = $('purchaseNote').value.trim() || null;
-      const pkg = App.state.currentPackage;
-      if (!pkg) return;
-
-      const btn = $('btnConfirmPurchase');
-      btn.disabled = true;
-      status('purchaseStatus', 'warn', 'Mengirim...');
-
-      try {
-        const { error } = await sb.rpc('user_create_purchase', {
-          p_package_id: pkg.id,
-          p_payment_method: method,
-          p_buyer_note: note,
-        });
-        if (error) throw error;
-        toast('Konfirmasi terkirim! Nunggu approve admin ✅', 'success', 4000);
-        closeModal('modalPurchase');
-        loadStore();
-      } catch (e) {
-        status('purchaseStatus', 'error', e.message || 'Gagal');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Kirim Konfirmasi';
-      }
-    });
+    $('btnConfirmPurchase')?.addEventListener('click', submitPurchase);
   });
 
   App.loadStore = loadStore;
