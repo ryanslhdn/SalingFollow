@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#10b981">
 <title>SalingFollow — Naik Followers Bareng</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤝</text></svg>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,10 +120,8 @@ tailwind.config = {
         <div class="header-sub">SalingFollow</div>
       </div>
 
-      <!-- Tombol Toko di Header -->
       <button id="btnOpenStore" class="icon-header-btn" title="Toko Kredit" style="position:relative">
         <i data-lucide="shopping-bag"></i>
-        <span id="storeBadge" style="position:absolute;top:-4px;right:-4px;background:#f59e0b;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;border:2px solid #fff">Rp</span>
       </button>
 
       <button id="btnLogout" class="icon-header-btn" title="Keluar">
@@ -439,6 +438,8 @@ tailwind.config = {
   </header>
 
   <main style="max-width:900px;margin:0 auto;padding:24px 20px">
+
+    <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px">
       <div class="stat-card">
         <div class="stat-icon blue"><i data-lucide="users"></i></div>
@@ -462,52 +463,95 @@ tailwind.config = {
       </div>
     </div>
 
+    <!-- Tabs -->
     <div style="display:flex;gap:4px;padding:4px;background:var(--surface-2);border-radius:12px;margin-bottom:20px;overflow-x:auto">
       <button data-admin-tab="users" class="admin-tab-btn active" style="flex:1">Users</button>
       <button data-admin-tab="purchases" class="admin-tab-btn" style="flex:1">Pembelian</button>
       <button data-admin-tab="settings" class="admin-tab-btn" style="flex:1">Pengaturan</button>
     </div>
 
+    <!-- TAB: USERS -->
     <section id="adminTabUsers" class="admin-tab-content">
       <div class="admin-card" style="padding:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap">
           <h2 style="font-weight:700;font-size:15px;color:var(--ink);margin:0">Semua User</h2>
           <button id="btnAdminRefreshUsers" class="sec-action">
             <i data-lucide="refresh-cw"></i> Refresh
           </button>
         </div>
+
+        <!-- Search Users -->
+        <div style="position:relative;margin-bottom:14px">
+          <i data-lucide="search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-3);pointer-events:none"></i>
+          <input id="adminUserSearch" type="text" placeholder="Cari nama atau username..."
+                 style="width:100%;padding:11px 14px 11px 38px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:13.5px;outline:none;font-family:inherit;box-sizing:border-box">
+        </div>
+
         <div id="adminUsersList" class="space-y-2"></div>
       </div>
     </section>
 
+    <!-- TAB: PURCHASES -->
     <section id="adminTabPurchases" class="admin-tab-content hidden">
       <div class="admin-card" style="padding:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap">
           <h2 style="font-weight:700;font-size:15px;color:var(--ink);margin:0">Pembelian Kredit</h2>
           <button id="btnAdminRefreshPurchases" class="sec-action">
             <i data-lucide="refresh-cw"></i> Refresh
           </button>
         </div>
+
+        <!-- Search Purchases -->
+        <div style="position:relative;margin-bottom:10px">
+          <i data-lucide="search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-3);pointer-events:none"></i>
+          <input id="adminPurchaseSearch" type="text" placeholder="Cari nama atau username pembeli..."
+                 style="width:100%;padding:11px 14px 11px 38px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:13.5px;outline:none;font-family:inherit;box-sizing:border-box">
+        </div>
+
+        <!-- Filter Status -->
+        <div id="adminPurchaseFilter" style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px">
+          <button data-status="" style="padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-family:inherit;cursor:pointer;white-space:nowrap">
+            Semua
+          </button>
+          <button data-status="pending" style="padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-family:inherit;cursor:pointer;white-space:nowrap">
+            Pending
+          </button>
+          <button data-status="need_reupload" style="padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-family:inherit;cursor:pointer;white-space:nowrap">
+            Perlu Upload Ulang
+          </button>
+          <button data-status="approved" style="padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-family:inherit;cursor:pointer;white-space:nowrap">
+            Approved
+          </button>
+          <button data-status="rejected" style="padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-family:inherit;cursor:pointer;white-space:nowrap">
+            Rejected
+          </button>
+        </div>
+
         <div id="adminPurchasesList" class="space-y-2"></div>
       </div>
     </section>
 
+    <!-- TAB: SETTINGS -->
     <section id="adminTabSettings" class="admin-tab-content hidden">
       <div class="admin-card" style="padding:22px">
         <h2 style="font-weight:700;font-size:15px;color:var(--ink);margin:0 0 18px">Pengaturan Aplikasi</h2>
+
         <div style="margin-bottom:16px">
           <label class="form-label">Info Pembayaran</label>
           <textarea id="adminSetPaymentInfo" rows="4" class="form-input" style="font-family:ui-monospace,monospace;resize:vertical"></textarea>
         </div>
+
         <div style="margin-bottom:16px">
           <label class="form-label">Welcome Credits</label>
           <input id="adminSetWelcomeCredits" type="number" min="0" class="form-input">
         </div>
+
         <div style="margin-bottom:18px">
           <label class="form-label">Admin Password</label>
           <input id="adminSetAdminKey" type="text" class="form-input" style="font-family:ui-monospace,monospace">
           <p style="font-size:12px;color:#b45309;margin-top:8px;font-weight:500">⚠ Ganti juga di assets/js/config.js agar sinkron.</p>
         </div>
+
         <button id="btnAdminSaveSettings" class="btn-primary" style="width:100%">
           <i data-lucide="save" style="width:16px;height:16px"></i> Simpan Pengaturan
         </button>
@@ -516,7 +560,9 @@ tailwind.config = {
   </main>
 </div>
 
-<!-- MODAL: PILIH AKUN FOLLOW -->
+<!-- ============================================================
+     MODAL: PILIH AKUN FOLLOW
+     ============================================================ -->
 <div id="modalChooseFollower" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalChooseFollower"></div>
   <div class="modal-card">
@@ -542,7 +588,9 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- MODAL: ADD ACCOUNT -->
+<!-- ============================================================
+     MODAL: ADD ACCOUNT
+     ============================================================ -->
 <div id="modalAddAccount" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalAddAccount"></div>
   <div class="modal-card">
@@ -576,7 +624,9 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- MODAL: ADD TARGET -->
+<!-- ============================================================
+     MODAL: ADD TARGET
+     ============================================================ -->
 <div id="modalAddTarget" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalAddTarget"></div>
   <div class="modal-card">
@@ -639,7 +689,9 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- MODAL: REQUEST FOLLOWER -->
+<!-- ============================================================
+     MODAL: REQUEST FOLLOWER
+     ============================================================ -->
 <div id="modalRequest" class="modal-wrapper hidden">
   <div class="modal-backdrop" data-close-modal="modalRequest"></div>
   <div class="modal-card">
@@ -675,52 +727,53 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- MODAL: PURCHASE -->
-<div id="modalPurchase" class="modal-wrapper hidden">
-  <div class="modal-backdrop" data-close-modal="modalPurchase"></div>
+<!-- ============================================================
+     MODAL: BOOST (opsional, belum dipakai)
+     ============================================================ -->
+<div id="modalBoost" class="modal-wrapper hidden">
+  <div class="modal-backdrop" data-close-modal="modalBoost"></div>
   <div class="modal-card">
     <div class="modal-header">
-      <h3 class="modal-title">Konfirmasi Pembelian</h3>
-      <button class="modal-close" data-close-modal="modalPurchase">
+      <h3 class="modal-title">Boost Akun</h3>
+      <button class="modal-close" data-close-modal="modalBoost">
         <i data-lucide="x"></i>
       </button>
     </div>
     <div class="modal-body space-y-4">
-      <div id="purchaseSummary" style="padding:18px;border-radius:12px;background:var(--surface-2)">—</div>
+      <div style="padding:16px;border-radius:12px;background:var(--amber-50);border:1px solid #fde68a">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#b45309;margin-bottom:6px">Akun</div>
+        <div id="boostTargetName" style="font-weight:700;font-size:14px;color:var(--ink)">@—</div>
+      </div>
+      <div>
+        <label class="form-label">Durasi</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <button data-dur="24" class="boost-dur-btn boost-dur-active">24 jam</button>
+          <button data-dur="48" class="boost-dur-btn">48 jam</button>
+          <button data-dur="72" class="boost-dur-btn">72 jam</button>
+        </div>
+      </div>
       <div class="info-box warn">
-        <i data-lucide="alert-circle"></i>
-        <span>Transfer dulu ke rekening. Setelah itu submit form ini.</span>
+        <i data-lucide="info"></i>
+        <div>Biaya: <b id="boostCost">3 kredit</b> • Kreditmu: <b id="boostMyCredits">—</b></div>
       </div>
-      <div>
-        <label class="form-label">Metode Transfer</label>
-        <select id="purchaseMethod" class="form-input">
-          <option value="BCA">BCA</option>
-          <option value="Mandiri">Mandiri</option>
-          <option value="BRI">BRI</option>
-          <option value="BNI">BNI</option>
-          <option value="DANA">DANA</option>
-          <option value="OVO">OVO</option>
-          <option value="GoPay">GoPay</option>
-          <option value="ShopeePay">ShopeePay</option>
-        </select>
-      </div>
-      <div>
-        <label class="form-label">Catatan (opsional)</label>
-        <input id="purchaseNote" type="text" placeholder="contoh: transfer dari 0812xxx" class="form-input">
-      </div>
-      <div id="purchaseStatus" class="status-msg hidden"></div>
+      <div id="boostStatus" class="status-msg hidden"></div>
     </div>
     <div class="modal-footer">
-      <button id="btnConfirmPurchase" class="btn-primary">Kirim Konfirmasi</button>
+      <button id="btnConfirmBoost" class="btn-primary">
+        <i data-lucide="rocket" style="width:16px;height:16px"></i> Konfirmasi Boost
+      </button>
     </div>
   </div>
 </div>
 
 <div id="toasts"></div>
 
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
 <script src="assets/js/config.js"></script>
 <script src="assets/js/client.js"></script>
-<script src="assets/js/utils.js"></script>       <!-- harus sebelum yang pakai App.formatRupiah -->
+<script src="assets/js/utils.js"></script>
 <script src="assets/js/auth.js"></script>
 <script src="assets/js/profile.js"></script>
 <script src="assets/js/feed.js"></script>
@@ -728,7 +781,7 @@ tailwind.config = {
 <script src="assets/js/targets.js"></script>
 <script src="assets/js/claims.js"></script>
 <script src="assets/js/history.js"></script>
-<script src="assets/js/store.js"></script>       <!-- store.js sebelum tabs.js -->
+<script src="assets/js/store.js"></script>
 <script src="assets/js/tabs.js"></script>
 <script src="assets/js/admin.js"></script>
 <script src="assets/js/app.js"></script>
