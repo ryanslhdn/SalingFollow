@@ -109,13 +109,11 @@
     if (!grid) return;
 
     grid.innerHTML = Object.entries(PLATFORMS).map(([id, p]) => `
-      <button data-plat="${id}" class="platBtn ${state.selectedPlatform === id ? 'active' : ''}">
-        <div style="width:32px;height:32px;margin:0 auto;border-radius:9px;display:grid;place-items:center;background:${p.color}">
-          <i data-lucide="${p.icon}" style="width:16px;height:16px;color:#fff"></i>
+      <button type="button" data-plat="${id}" class="platBtn ${state.selectedPlatform === id ? 'active' : ''}">
+        <div class="plat-icon" style="background:${p.color}">
+          <i data-lucide="${p.icon}"></i>
         </div>
-        <div style="font-size:8.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:6px;color:var(--ink-3)">
-          ${p.name}
-        </div>
+        <div class="plat-name">${p.name}</div>
       </button>
     `).join('');
 
