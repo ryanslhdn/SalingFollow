@@ -2006,3 +2006,300 @@ button {
   .ld-stat-value { font-size: 18px; }
   .ld-stat-label { font-size: 10.5px; }
 }
+
+/* ============================================================
+   LANDING — REVEAL ANIMATIONS
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1);
+  will-change: opacity, transform;
+}
+.reveal.revealed {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.reveal-left   { transform: translateX(-60px); }
+.reveal-right  { transform: translateX(60px); }
+.reveal-up     { transform: translateY(40px); }
+.reveal-down   { transform: translateY(-40px); }
+.reveal-zoom   { transform: scale(.94); }
+
+@media (max-width: 640px) {
+  .reveal-left, .reveal-right { transform: translateY(30px); }
+}
+
+/* ============================================================
+   LANDING — BADGE & HERO IMPROVEMENTS
+   ============================================================ */
+.ld-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(16,185,129,.1);
+  border: 1px solid rgba(16,185,129,.25);
+  color: #34d399;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  margin-bottom: 18px;
+}
+
+.ld-badge-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16,185,129,.7);
+  animation: ldPulse 2s infinite;
+}
+
+@keyframes ldPulse {
+  0% { box-shadow: 0 0 0 0 rgba(16,185,129,.6); }
+  70% { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+
+/* ============================================================
+   LANDING — SECTIONS
+   ============================================================ */
+.ld-section {
+  position: relative;
+  z-index: 5;
+  padding: 60px 20px;
+}
+@media (min-width: 900px) { .ld-section { padding: 80px 40px; } }
+
+.ld-section-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.ld-section-head {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto 42px;
+}
+
+.ld-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(16,185,129,.1);
+  border: 1px solid rgba(16,185,129,.25);
+  color: #34d399;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.ld-section-badge svg { width: 13px; height: 13px; }
+
+.ld-section-head h2 {
+  font-size: clamp(1.6rem, 4.5vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: -.03em;
+  color: #fff;
+  margin: 0 0 10px;
+  line-height: 1.15;
+}
+
+.ld-section-head p {
+  font-size: 15px;
+  color: rgba(229,231,235,.6);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   LANDING — TESTIMONI
+   ============================================================ */
+.ld-testimoni-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 900px) {
+  .ld-testimoni-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+}
+
+.ld-testi-card {
+  position: relative;
+  padding: 24px;
+  border-radius: 20px;
+  background: linear-gradient(140deg, rgba(30,41,59,.6), rgba(15,23,42,.5));
+  border: 1px solid rgba(255,255,255,.08);
+  transition: all .3s cubic-bezier(.16,1,.3,1);
+  overflow: hidden;
+}
+.ld-testi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, #059669);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.ld-testi-card:hover {
+  border-color: rgba(16,185,129,.35);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px rgba(16,185,129,.25);
+}
+.ld-testi-card:hover::before { opacity: 1; }
+
+.ld-testi-stars {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 14px;
+}
+.ld-testi-stars svg {
+  width: 16px; height: 16px;
+  color: #fbbf24;
+  fill: #fbbf24;
+  stroke: #fbbf24;
+}
+
+.ld-testi-text {
+  font-size: 14px;
+  color: rgba(229,231,235,.85);
+  line-height: 1.65;
+  margin: 0 0 20px;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.ld-testi-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.ld-testi-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 14px -4px rgba(0,0,0,.4);
+  border: 2px solid rgba(255,255,255,.15);
+}
+
+.ld-testi-name {
+  font-weight: 800;
+  font-size: 13.5px;
+  color: #fff;
+  letter-spacing: -.01em;
+}
+.ld-testi-role {
+  font-size: 11.5px;
+  color: rgba(229,231,235,.55);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   LANDING — KONTAK
+   ============================================================ */
+.ld-kontak-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+@media (min-width: 640px) {
+  .ld-kontak-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+}
+
+.ld-kontak-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 18px;
+  background: linear-gradient(140deg, rgba(30,41,59,.7), rgba(15,23,42,.6));
+  border: 1.5px solid rgba(255,255,255,.08);
+  text-decoration: none;
+  transition: all .3s cubic-bezier(.16,1,.3,1);
+  position: relative;
+  overflow: hidden;
+}
+.ld-kontak-card:hover {
+  border-color: rgba(16,185,129,.4);
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px -12px rgba(16,185,129,.25);
+}
+
+.ld-kontak-icon {
+  width: 52px; height: 52px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px -6px rgba(0,0,0,.4);
+}
+.ld-kontak-icon svg { width: 24px; height: 24px; }
+
+.ld-kontak-body { flex: 1; min-width: 0; }
+.ld-kontak-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(229,231,235,.5);
+  margin-bottom: 4px;
+}
+.ld-kontak-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.ld-kontak-arrow {
+  width: 20px; height: 20px;
+  color: rgba(229,231,235,.4);
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.ld-kontak-card:hover .ld-kontak-arrow {
+  color: #10b981;
+  transform: translate(3px, -3px);
+}
+
+/* ============================================================
+   LANDING — IMPROVED VISUAL CARD (hero)
+   ============================================================ */
+.ld-visual-card {
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,.25), transparent 50%),
+    linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+  position: relative;
+}
+.ld-visual-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 70% 80%, rgba(0,0,0,.15), transparent 60%);
+  pointer-events: none;
+}
+.ld-visual-card svg {
+  position: relative;
+  z-index: 1;
+  stroke-width: 1.8;
+  color: #fff;
+}
